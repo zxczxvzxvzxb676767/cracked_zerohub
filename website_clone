@@ -1,0 +1,2073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZeroHub — Script Hub</title>
+    <link rel="icon" type="image/png" href="https://zerohub.fun/Ph/Zerohub.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --red: #e8192c;
+            --red-dark: #a50f1e;
+            --red-bright: #ff2d42;
+            --red-glow: rgba(232,25,44,0.4);
+            --white: #ffffff;
+            --white-dim: rgba(255,255,255,0.85);
+            --white-muted: rgba(255,255,255,0.45);
+            --white-ghost: rgba(255,255,255,0.07);
+            --bg: #090909;
+            --bg2: #111114;
+            --bg3: #18181d;
+            --border: rgba(255,255,255,0.07);
+            --border-red: rgba(232,25,44,0.3);
+            --discord: #5865F2;
+            --youtube: #FF0000;
+            --youtube-dark: #cc0000;
+            --youtube-glow: rgba(255,0,0,0.35);
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            background: var(--bg);
+            color: var(--white);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+            pointer-events: none; z-index: 998; opacity: 0.7;
+        }
+        #bgVideo {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%; height: 100%;
+            min-width: 100vw; min-height: 100vh;
+            object-fit: cover;
+            z-index: -2;
+            filter: brightness(0.15) saturate(0.3);
+            will-change: transform;
+            backface-visibility: hidden;
+        }
+        .bg-overlay {
+            position: fixed; inset: 0;
+            background: radial-gradient(ellipse 90% 55% at 50% 0%, rgba(232,25,44,0.1) 0%, transparent 55%),
+                        linear-gradient(180deg, rgba(9,9,9,0.6) 0%, rgba(9,9,9,0.96) 100%);
+            z-index: -1;
+        }
+
+        /* LOADING SCREEN */
+        #loadingScreen {
+            position: fixed; inset: 0; z-index: 1000;
+            background: #090909;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+        .loading-logo {
+            width: 72px; height: 72px; border-radius: 50%;
+            border: 3px solid var(--red);
+            box-shadow: 0 0 30px var(--red-glow);
+            margin-bottom: 22px;
+            animation: logoPulse 1.4s ease-in-out infinite;
+        }
+        @keyframes logoPulse {
+            0%,100% { box-shadow: 0 0 20px rgba(232,25,44,0.4); }
+            50%      { box-shadow: 0 0 50px rgba(232,25,44,0.8); }
+        }
+        .loading-wordmark {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3.2rem; letter-spacing: 5px;
+            margin-bottom: 32px; line-height: 1;
+        }
+        .loading-wordmark span { color: var(--red); }
+        .loading-bar-wrap {
+            width: 200px; height: 2px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 2px; overflow: hidden;
+        }
+        .loading-bar {
+            height: 100%; width: 0%;
+            background: linear-gradient(90deg, var(--red-dark), var(--red-bright));
+            border-radius: 2px; transition: width 0.25s ease;
+        }
+        .loading-label {
+            margin-top: 14px; font-size: 0.7rem;
+            letter-spacing: 2px; text-transform: uppercase;
+            color: var(--white-muted);
+        }
+        #loadingScreen.fade-out {
+            transition: opacity 0.55s ease;
+            opacity: 0; pointer-events: none;
+        }
+
+        /* SOUND PANEL */
+        .sound-panel {
+            position: fixed; bottom: 24px; right: 24px;
+            z-index: 300;
+            display: flex; align-items: center;
+            background: rgba(9,9,9,0.88);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--border-red);
+            border-radius: 100px;
+            padding: 7px 14px 7px 8px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .sound-panel:hover { border-color: var(--red); box-shadow: 0 4px 24px var(--red-glow); }
+        .sound-icon-btn {
+            background: none; border: none;
+            color: var(--white-muted);
+            width: 28px; height: 28px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 0.9rem;
+            transition: color 0.2s; flex-shrink: 0; padding: 0;
+        }
+        .sound-icon-btn:hover { color: var(--white); }
+        .sound-icon-btn.on { color: var(--red); }
+        .volume-slider {
+            -webkit-appearance: none; appearance: none;
+            width: 76px; height: 3px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px; outline: none;
+            cursor: pointer; margin-left: 7px;
+        }
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px; height: 12px; border-radius: 50%;
+            background: var(--red); cursor: pointer;
+            box-shadow: 0 0 5px var(--red-glow);
+            transition: transform 0.15s;
+        }
+        .volume-slider::-webkit-slider-thumb:hover { transform: scale(1.35); }
+        .volume-slider::-moz-range-thumb {
+            width: 12px; height: 12px;
+            border-radius: 50%; border: none;
+            background: var(--red); cursor: pointer;
+        }
+        .volume-pct {
+            font-size: 0.68rem; font-weight: 700;
+            color: var(--white-muted); margin-left: 8px;
+            min-width: 26px; text-align: right;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* NAVBAR */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0;
+            z-index: 100; height: 62px; padding: 0 40px;
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(9,9,9,0.88); backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-logo { display: flex; align-items: center; gap: 11px; text-decoration: none; cursor: pointer; }
+        .nav-logo img { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--red); }
+        .nav-logo-text { font-family: 'Bebas Neue', sans-serif; font-size: 1.55rem; letter-spacing: 3px; color: var(--white); }
+        .nav-logo-text span { color: var(--red); }
+        .nav-links { display: flex; align-items: center; gap: 4px; }
+        .nav-link { color: var(--white-muted); font-size: 0.82rem; font-weight: 600; letter-spacing: 0.8px; padding: 7px 14px; border-radius: 8px; transition: all 0.2s; cursor: pointer; text-transform: uppercase; }
+        .nav-link:hover { color: var(--white); background: var(--white-ghost); }
+        .nav-link.active { color: var(--red); }
+        #nav-key { display: none !important; }
+        #nav-key.role-granted { display: inline-flex !important; }
+        #nav-login-btn {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--discord); color: white;
+            padding: 8px 18px; border-radius: 10px;
+            font-size: 0.82rem; font-weight: 700;
+            border: none; cursor: pointer; transition: all 0.2s;
+        }
+        #nav-login-btn:hover { background: #4752C4; transform: translateY(-1px); box-shadow: 0 4px 18px rgba(88,101,242,0.4); }
+        .nav-user { display: flex; align-items: center; gap: 10px; cursor: pointer; position: relative; }
+        .nav-avatar { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--red); object-fit: cover; }
+        .nav-username { font-size: 0.88rem; font-weight: 600; color: var(--white-dim); }
+        .user-dropdown {
+            position: absolute; top: calc(100% + 14px); right: 0;
+            background: var(--bg3); border: 1px solid var(--border);
+            border-radius: 14px; padding: 6px; min-width: 190px;
+            display: none; box-shadow: 0 20px 60px rgba(0,0,0,0.55);
+            animation: dropIn 0.18s ease;
+        }
+        .user-dropdown.open { display: block; }
+        @keyframes dropIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+        .dropdown-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 9px; font-size: 0.83rem; color: var(--white-dim); cursor: pointer; transition: all 0.15s; }
+        .dropdown-item:hover { background: var(--white-ghost); color: var(--white); }
+        .dropdown-item.danger { color: #f87171; }
+        .dropdown-item.danger:hover { background: rgba(248,113,113,0.08); }
+        .dropdown-item i { width: 14px; text-align: center; font-size: 0.85rem; }
+        #dd-key-item { display: none; }
+
+        /* PAGES */
+        .page { display: none; padding-top: 62px; min-height: 100vh; }
+        .page.active { display: block; }
+
+        /* HERO */
+        .hero { min-height: calc(100vh - 62px); display: flex; align-items: center; justify-content: center; text-align: center; padding: 60px 20px; }
+        .hero-content { max-width: 680px; }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(232,25,44,0.1); border: 1px solid var(--border-red);
+            color: var(--red-bright); padding: 5px 16px; border-radius: 100px;
+            font-size: 0.75rem; font-weight: 700; letter-spacing: 1.5px;
+            text-transform: uppercase; margin-bottom: 22px;
+        }
+        .hero-badge .dot { width: 6px; height: 6px; background: var(--red); border-radius: 50%; animation: blink 1.5s ease-in-out infinite; }
+        @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+        .hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(4.5rem, 13vw, 10rem); line-height: 0.88; letter-spacing: 4px; margin-bottom: 12px; }
+        .hero h1 .line-white { color: var(--white); display: block; }
+        .hero h1 .line-red { color: var(--red); display: block; }
+        .hero-sub { font-size: 1rem; color: var(--white-muted); max-width: 460px; margin: 0 auto 36px; line-height: 1.75; }
+        .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn-primary { background: var(--red); color: white; padding: 13px 30px; border-radius: 11px; font-size: 0.88rem; font-weight: 700; border: none; cursor: pointer; transition: all 0.25s; display: flex; align-items: center; gap: 8px; }
+        .btn-primary:hover { background: var(--red-bright); transform: translateY(-2px); box-shadow: 0 8px 28px var(--red-glow); }
+        .btn-outline { background: transparent; color: var(--white-dim); padding: 13px 30px; border-radius: 11px; font-size: 0.88rem; font-weight: 600; border: 1px solid var(--border); cursor: pointer; transition: all 0.25s; display: flex; align-items: center; gap: 8px; }
+        .btn-outline:hover { border-color: rgba(255,255,255,0.2); background: var(--white-ghost); color: var(--white); transform: translateY(-2px); }
+        .btn-youtube { background: var(--youtube); color: white; padding: 13px 30px; border-radius: 11px; font-size: 0.88rem; font-weight: 700; border: none; cursor: pointer; transition: all 0.25s; display: flex; align-items: center; gap: 8px; text-decoration: none; }
+        .btn-youtube:hover { background: var(--youtube-dark); transform: translateY(-2px); box-shadow: 0 8px 28px var(--youtube-glow); }
+        .hero-stats { display: flex; gap: 48px; justify-content: center; margin-top: 56px; flex-wrap: wrap; }
+        .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; color: var(--red); letter-spacing: 2px; line-height: 1; }
+        .stat-label { font-size: 0.75rem; color: var(--white-muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 3px; }
+
+        /* SOCIAL LINKS BAR */
+        .social-bar {
+            display: flex; gap: 12px; justify-content: center; margin-top: 28px; flex-wrap: wrap;
+        }
+        .social-btn {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 22px; border-radius: 10px;
+            font-size: 0.82rem; font-weight: 700;
+            border: none; cursor: pointer; transition: all 0.25s;
+            text-decoration: none;
+        }
+        .social-btn-discord { background: rgba(88,101,242,0.15); color: #818cf8; border: 1px solid rgba(88,101,242,0.3); }
+        .social-btn-discord:hover { background: rgba(88,101,242,0.25); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(88,101,242,0.3); }
+        .social-btn-youtube { background: rgba(255,0,0,0.12); color: #ff4444; border: 1px solid rgba(255,0,0,0.3); }
+        .social-btn-youtube:hover { background: rgba(255,0,0,0.22); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,0,0,0.3); }
+
+        /* SECTION */
+        .section { padding: 70px 40px; max-width: 1200px; margin: 0 auto; }
+        .section-label { font-size: 0.73rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--red); margin-bottom: 8px; }
+        .section-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2rem, 5vw, 3.2rem); letter-spacing: 2px; line-height: 1; margin-bottom: 40px; }
+        .section-title span { color: var(--red); }
+
+        /* PRODUCTS */
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+        .product-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; transition: all 0.3s ease; position: relative; }
+        .product-card::before { content: ''; position: absolute; inset: 0; border-radius: 18px; background: linear-gradient(135deg, rgba(232,25,44,0.05) 0%, transparent 60%); opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+        .product-card:hover { transform: translateY(-5px); border-color: var(--border-red); }
+        .product-card:hover::before { opacity: 1; }
+        .card-banner {
+            width: 100%; height: 140px;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+            background: linear-gradient(135deg, #150508, #0e0e15);
+        }
+        .card-banner-inner {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.8rem;
+            letter-spacing: 4px;
+            color: var(--red);
+            opacity: 0.35;
+            position: relative; z-index: 1;
+        }
+        .card-banner::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(232,25,44,0.08) 0%, transparent 55%); }
+        .card-body { padding: 20px; }
+        .card-tags { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; }
+        .tag { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px; padding: 2px 9px; border-radius: 100px; }
+        .tag-red { background: rgba(232,25,44,0.13); color: var(--red-bright); border: 1px solid rgba(232,25,44,0.22); }
+        .tag-white { background: rgba(255,255,255,0.06); color: var(--white-muted); border: 1px solid var(--border); }
+        .tag-green { background: rgba(74,222,128,0.08); color: #4ade80; border: 1px solid rgba(74,222,128,0.18); }
+        .card-name { font-size: 1.15rem; font-weight: 700; margin-bottom: 5px; }
+        .card-desc { font-size: 0.81rem; color: var(--white-muted); line-height: 1.6; margin-bottom: 16px; }
+        .card-footer { display: flex; align-items: center; justify-content: space-between; }
+        .card-price { font-family: 'Bebas Neue', sans-serif; font-size: 1.55rem; letter-spacing: 1px; }
+        .price-free { color: #4ade80; }
+        .card-price small { font-family: 'Inter', sans-serif; font-size: 0.68rem; color: var(--white-muted); font-weight: 400; vertical-align: middle; }
+        .btn-buy { background: var(--red); color: white; padding: 9px 20px; border-radius: 9px; font-size: 0.8rem; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+        .btn-buy:hover { background: var(--red-bright); box-shadow: 0 4px 18px var(--red-glow); transform: translateY(-1px); }
+        .btn-buy-free { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
+        .btn-buy-free:hover { background: rgba(74,222,128,0.2); }
+
+        /* COMMUNITY STATS PAGE */
+        .stats-page-wrap { max-width: 1100px; margin: 0 auto; padding: 50px 40px; }
+        .live-counter-hero {
+            background: linear-gradient(135deg, rgba(232,25,44,0.08) 0%, rgba(232,25,44,0.02) 100%);
+            border: 1px solid var(--border-red);
+            border-radius: 24px;
+            padding: 48px 40px;
+            text-align: center;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+        .live-counter-hero::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(232,25,44,0.12) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .live-label {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(232,25,44,0.1); border: 1px solid var(--border-red);
+            color: var(--red-bright); padding: 5px 16px; border-radius: 100px;
+            font-size: 0.73rem; font-weight: 700; letter-spacing: 1.5px;
+            text-transform: uppercase; margin-bottom: 20px;
+        }
+        .live-label .dot { width: 6px; height: 6px; background: var(--red); border-radius: 50%; animation: blink 1.5s ease-in-out infinite; }
+        .live-count-main {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(5rem, 15vw, 9rem);
+            letter-spacing: 8px;
+            color: var(--red);
+            line-height: 0.9;
+            margin-bottom: 10px;
+            text-shadow: 0 0 60px rgba(232,25,44,0.4);
+        }
+        .live-count-label {
+            font-size: 1.1rem; font-weight: 600;
+            color: var(--white-muted); letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .community-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .community-stat-card {
+            background: var(--bg2); border: 1px solid var(--border);
+            border-radius: 18px; padding: 26px 24px;
+            transition: all 0.3s;
+            position: relative; overflow: hidden;
+        }
+        .community-stat-card::before {
+            content: ''; position: absolute; top: 0; left: 0;
+            right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-color, var(--red)), transparent);
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .community-stat-card:hover { border-color: var(--border-red); transform: translateY(-3px); }
+        .community-stat-card:hover::before { opacity: 1; }
+        .csc-icon { font-size: 1.5rem; margin-bottom: 14px; }
+        .csc-value {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.4rem; letter-spacing: 2px;
+            line-height: 1; margin-bottom: 4px;
+        }
+        .csc-label { font-size: 0.75rem; color: var(--white-muted); letter-spacing: 1px; text-transform: uppercase; }
+        .csc-sub { font-size: 0.7rem; color: var(--white-muted); margin-top: 6px; opacity: 0.7; }
+
+        /* Login History Table */
+        .login-history-wrap {
+            background: var(--bg2); border: 1px solid var(--border);
+            border-radius: 18px; overflow: hidden; margin-bottom: 24px;
+        }
+        .login-history-header {
+            padding: 18px 24px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+        }
+        .login-history-header h3 {
+            font-family: 'Bebas Neue', sans-serif; font-size: 1.15rem;
+            letter-spacing: 2px; display: flex; align-items: center; gap: 8px;
+        }
+        .login-history-header h3 i { color: var(--red); }
+
+        /* Live Activity Feed */
+        .activity-feed {
+            background: var(--bg2); border: 1px solid var(--border);
+            border-radius: 18px; overflow: hidden;
+        }
+        .activity-feed-header {
+            padding: 18px 24px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .activity-feed-header h3 {
+            font-family: 'Bebas Neue', sans-serif; font-size: 1.15rem;
+            letter-spacing: 2px; display: flex; align-items: center; gap: 8px;
+        }
+        .activity-feed-header h3 i { color: var(--red); }
+        .activity-item {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px 24px; border-bottom: 1px solid rgba(255,255,255,0.04);
+            transition: background 0.15s;
+            animation: activitySlide 0.4s ease;
+        }
+        @keyframes activitySlide { from { opacity:0; transform:translateX(-10px); } to { opacity:1; transform:translateX(0); } }
+        .activity-item:hover { background: var(--white-ghost); }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--red-dark), var(--bg3));
+            border: 2px solid var(--border-red);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem; font-weight: 700; color: var(--red);
+            flex-shrink: 0; overflow: hidden;
+        }
+        .activity-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        .activity-info { flex: 1; }
+        .activity-name { font-size: 0.88rem; font-weight: 600; color: var(--white-dim); }
+        .activity-action { font-size: 0.75rem; color: var(--white-muted); margin-top: 2px; }
+        .activity-time {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem; color: var(--white-muted); white-space: nowrap;
+        }
+
+        /* KEY ADMIN PAGE */
+        .key-admin-wrap { max-width: 960px; }
+        .token-bar {
+            background: var(--bg2); border: 1px solid var(--border-red);
+            border-radius: 14px; padding: 16px 20px;
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 24px; flex-wrap: wrap;
+        }
+        .token-bar label { font-size: 0.75rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--red); white-space: nowrap; }
+        .token-input {
+            flex: 1; background: var(--bg); border: 1px solid var(--border);
+            color: var(--white); padding: 10px 14px; border-radius: 9px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+            outline: none; transition: border-color 0.2s; min-width: 200px;
+        }
+        .token-input:focus { border-color: var(--red); }
+        .btn-sm {
+            padding: 10px 18px; border-radius: 9px; font-size: 0.8rem; font-weight: 700;
+            border: none; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .btn-sm-red { background: var(--red); color: white; }
+        .btn-sm-red:hover { background: var(--red-bright); box-shadow: 0 4px 14px var(--red-glow); }
+        .btn-sm-outline { background: transparent; color: var(--white-muted); border: 1px solid var(--border); }
+        .btn-sm-outline:hover { color: var(--white); background: var(--white-ghost); }
+        .btn-sm-danger { background: rgba(248,113,113,0.1); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+        .btn-sm-danger:hover { background: rgba(248,113,113,0.18); }
+        .btn-sm-warn { background: rgba(251,146,60,0.1); color: #fb923c; border: 1px solid rgba(251,146,60,0.25); }
+        .btn-sm-warn:hover { background: rgba(251,146,60,0.18); }
+        .admin-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 24px; }
+        @media (max-width: 700px) { .admin-panels { grid-template-columns: 1fr; } }
+        .admin-box {
+            background: var(--bg2); border: 1px solid var(--border);
+            border-radius: 18px; overflow: hidden;
+        }
+        .admin-box-header {
+            padding: 16px 22px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .admin-box-header h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.15rem; letter-spacing: 2px; }
+        .admin-box-header i { color: var(--red); }
+        .admin-box-body { padding: 20px 22px; }
+        .form-field { margin-bottom: 14px; }
+        .form-field label { display: block; font-size: 0.72rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--white-muted); margin-bottom: 6px; }
+        .form-input {
+            width: 100%; background: var(--bg); border: 1px solid var(--border);
+            color: var(--white); padding: 11px 14px; border-radius: 10px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+            outline: none; transition: border-color 0.2s;
+        }
+        .form-input:focus { border-color: var(--red); }
+        .form-input::placeholder { color: var(--white-muted); font-family: 'Inter', sans-serif; font-size: 0.82rem; }
+        .form-select {
+            width: 100%; background: var(--bg); border: 1px solid var(--border);
+            color: var(--white); padding: 11px 14px; border-radius: 10px;
+            font-family: 'Inter', sans-serif; font-size: 0.85rem;
+            outline: none; transition: border-color 0.2s; cursor: pointer;
+        }
+        .form-select:focus { border-color: var(--red); }
+
+        /* RUN STATS DASHBOARD */
+        .stats-dashboard {
+            background: var(--bg2); border: 1px solid var(--border);
+            border-radius: 18px; overflow: hidden; margin-bottom: 24px;
+        }
+        .stats-dashboard-header {
+            padding: 16px 22px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+        }
+        .stats-dashboard-header h3 {
+            font-family: 'Bebas Neue', sans-serif; font-size: 1.15rem; letter-spacing: 2px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .stats-dashboard-header h3 i { color: var(--red); }
+        .stats-summary-cards {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
+            padding: 20px 22px; border-bottom: 1px solid var(--border);
+        }
+        @media (max-width: 700px) { .stats-summary-cards { grid-template-columns: repeat(3, 1fr); } }
+        .stat-mini-card {
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 12px; padding: 14px; text-align: center;
+            transition: border-color 0.2s;
+        }
+        .stat-mini-card:hover { border-color: var(--border-red); }
+        .stat-mini-val {
+            font-family: 'Bebas Neue', sans-serif; font-size: 1.7rem;
+            letter-spacing: 1px; color: var(--red); line-height: 1; margin-bottom: 3px;
+        }
+        .stat-mini-label { font-size: 0.68rem; color: var(--white-muted); letter-spacing: 0.5px; text-transform: uppercase; }
+
+        /* COOLDOWN BANNER */
+        .cooldown-banner {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px 20px; border-radius: 14px; border: 1px solid;
+            margin-bottom: 20px; font-size: 0.85rem; font-weight: 600;
+        }
+        .cooldown-banner.ready {
+            background: rgba(74,222,128,0.07); border-color: rgba(74,222,128,0.25); color: #4ade80;
+        }
+        .cooldown-banner.waiting {
+            background: rgba(251,146,60,0.07); border-color: rgba(251,146,60,0.25); color: #fb923c;
+        }
+        .cooldown-banner i { font-size: 1.1rem; flex-shrink: 0; }
+        .cooldown-timer {
+            font-family: 'JetBrains Mono', monospace; font-size: 1.05rem;
+            font-weight: 700; letter-spacing: 1px;
+        }
+
+        /* KEYS TABLE */
+        .keys-table-wrap {
+            background: var(--bg2); border: 1px solid var(--border);
+            border-radius: 18px; overflow: hidden;
+        }
+        .keys-table-header {
+            padding: 16px 22px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+        }
+        .keys-table-header h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.15rem; letter-spacing: 2px; display: flex; align-items: center; gap: 8px; }
+        .keys-table-header h3 i { color: var(--red); }
+        .keys-count-pill { font-size: 0.72rem; font-weight: 700; padding: 3px 11px; border-radius: 100px; background: rgba(232,25,44,0.1); color: var(--red); border: 1px solid var(--border-red); }
+        .search-bar {
+            background: var(--bg); border: 1px solid var(--border);
+            color: var(--white); padding: 8px 14px; border-radius: 9px;
+            font-size: 0.83rem; outline: none; transition: border-color 0.2s; width: 220px;
+        }
+        .search-bar:focus { border-color: var(--red); }
+        .search-bar::placeholder { color: var(--white-muted); }
+        table { width: 100%; border-collapse: collapse; }
+        thead tr { border-bottom: 1px solid var(--border); }
+        thead th { padding: 12px 16px; text-align: left; font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--white-muted); }
+        tbody tr { border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.15s; }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: var(--white-ghost); }
+        tbody td { padding: 13px 16px; font-size: 0.83rem; vertical-align: middle; }
+        .key-cell { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--white-dim); display: flex; align-items: center; gap: 8px; }
+        .key-status-badge { font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: 100px; letter-spacing: 0.5px; white-space: nowrap; }
+        .status-active { background: rgba(74,222,128,0.1); color: #4ade80; border: 1px solid rgba(74,222,128,0.2); }
+        .status-inactive { background: rgba(248,113,113,0.1); color: #f87171; border: 1px solid rgba(248,113,113,0.2); }
+        .status-expired { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
+        .run-count-badge {
+            display: inline-block; background: rgba(232,25,44,0.1); border: 1px solid rgba(232,25,44,0.22);
+            color: var(--red-bright); border-radius: 100px; padding: 2px 11px;
+            font-size: 0.72rem; font-weight: 700; font-family: 'JetBrains Mono', monospace;
+            min-width: 34px; text-align: center; letter-spacing: 0.5px;
+        }
+        .run-count-badge.zero { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); color: var(--white-muted); }
+        .expiry-badge {
+            font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 100px;
+            background: rgba(251,146,60,0.1); color: #fb923c; border: 1px solid rgba(251,146,60,0.2);
+            white-space: nowrap;
+        }
+        .expiry-badge.expired { background: rgba(248,113,113,0.1); color: #f87171; border-color: rgba(248,113,113,0.2); }
+        .expiry-badge.unlimited { background: rgba(74,222,128,0.1); color: #4ade80; border-color: rgba(74,222,128,0.2); }
+        .maps-badge {
+            display: inline-flex; flex-wrap: wrap; gap: 4px;
+        }
+        .map-tag {
+            font-size: 0.6rem; font-weight: 600; padding: 2px 6px; border-radius: 4px;
+            background: rgba(129,140,248,0.1); color: #818cf8; border: 1px solid rgba(129,140,248,0.2);
+        }
+        .action-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+        .empty-state { padding: 40px; text-align: center; color: var(--white-muted); font-size: 0.88rem; }
+        .empty-state i { font-size: 2rem; display: block; margin-bottom: 10px; opacity: 0.35; }
+        .spinner-sm { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.15); border-top-color: var(--red); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .access-denied-box {
+            max-width: 480px; margin: 80px auto; text-align: center;
+            background: var(--bg2); border: 1px solid rgba(248,113,113,0.25);
+            border-radius: 22px; padding: 50px 36px;
+        }
+        .access-denied-icon { font-size: 3rem; color: #f87171; margin-bottom: 20px; display: block; }
+        .access-denied-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 3px; color: #f87171; margin-bottom: 10px; }
+        .access-denied-sub { font-size: 0.88rem; color: var(--white-muted); line-height: 1.75; margin-bottom: 28px; }
+        .role-badge-display {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(248,113,113,0.07); border: 1px solid rgba(248,113,113,0.2);
+            border-radius: 100px; padding: 6px 16px; font-size: 0.78rem;
+            color: #f87171; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 24px;
+        }
+        .role-tag {
+            font-size: 0.62rem; font-weight: 700; padding: 2px 8px;
+            border-radius: 100px; letter-spacing: 0.5px;
+            background: rgba(232,25,44,0.12); color: var(--red);
+            border: 1px solid rgba(232,25,44,0.25); margin-left: 4px;
+        }
+
+        /* DASHBOARD */
+        .dash-header { padding: 36px 40px; border-bottom: 1px solid var(--border); background: linear-gradient(135deg, rgba(232,25,44,0.06) 0%, transparent 55%); }
+        .dash-welcome { display: flex; align-items: center; gap: 18px; }
+        .dash-avatar { width: 58px; height: 58px; border-radius: 50%; border: 3px solid var(--red); box-shadow: 0 0 18px var(--red-glow); object-fit: cover; }
+        .dash-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 2px; }
+        .dash-tag { font-size: 0.75rem; color: var(--white-muted); font-weight: 600; margin-top: 2px; }
+        .dash-body { padding: 30px 40px; display: flex; flex-direction: column; gap: 24px; }
+        .dash-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+        .dash-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 15px; padding: 22px; transition: border-color 0.2s; }
+        .dash-card:hover { border-color: var(--border-red); }
+        .dash-card-icon { width: 40px; height: 40px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; margin-bottom: 14px; }
+        .icon-red { background: rgba(232,25,44,0.13); color: var(--red); }
+        .icon-blue { background: rgba(88,101,242,0.12); color: #818cf8; }
+        .icon-green { background: rgba(74,222,128,0.09); color: #4ade80; }
+        .icon-orange { background: rgba(251,146,60,0.12); color: #fb923c; }
+        .icon-youtube { background: rgba(255,0,0,0.12); color: #ff4444; }
+        .dash-card-value { font-family: 'Bebas Neue', sans-serif; font-size: 1.9rem; letter-spacing: 1px; line-height: 1; margin-bottom: 3px; word-break: break-all; }
+        .dash-card-label { font-size: 0.75rem; color: var(--white-muted); letter-spacing: 0.5px; }
+        .my-key-card {
+            background: linear-gradient(135deg, rgba(232,25,44,0.07) 0%, rgba(232,25,44,0.02) 100%);
+            border: 1px solid var(--border-red);
+            border-radius: 18px; padding: 24px 28px;
+        }
+        .my-key-card h3 {
+            font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem;
+            letter-spacing: 2px; margin-bottom: 18px;
+            display: flex; align-items: center; gap: 10px; color: var(--red);
+        }
+        .my-key-info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+        .my-key-info-item {
+            background: var(--bg2); border: 1px solid var(--border);
+            border-radius: 12px; padding: 14px 16px;
+        }
+        .my-key-info-label { font-size: 0.7rem; color: var(--white-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+        .my-key-info-value {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+            color: var(--white-dim); font-weight: 600;
+        }
+        .my-key-info-value.good { color: #4ade80; }
+        .my-key-info-value.warn { color: #fb923c; }
+        .my-key-info-value.expired { color: #f87171; }
+        .maps-list {
+            display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px;
+        }
+        .rank-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 14px; border-radius: 100px;
+            font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px;
+        }
+        .rank-owner { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+        .rank-member { background: rgba(129,140,248,0.1); color: #818cf8; border: 1px solid rgba(129,140,248,0.3); }
+        .rank-premium { background: rgba(232,25,44,0.12); color: var(--red-bright); border: 1px solid var(--border-red); }
+        .discord-card {
+            background: linear-gradient(135deg, rgba(88,101,242,0.12) 0%, rgba(88,101,242,0.04) 100%);
+            border: 1px solid rgba(88,101,242,0.25);
+            border-radius: 18px; padding: 24px 28px;
+            display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+        }
+        .discord-card-left { display: flex; align-items: center; gap: 16px; }
+        .discord-card-icon { width: 48px; height: 48px; border-radius: 14px; background: rgba(88,101,242,0.2); border: 1px solid rgba(88,101,242,0.3); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: #818cf8; }
+        .discord-card-name { font-weight: 700; font-size: 1rem; margin-bottom: 3px; }
+        .discord-card-sub { font-size: 0.8rem; color: var(--white-muted); }
+        .btn-discord-inv { background: var(--discord); color: white; padding: 10px 22px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+        .btn-discord-inv:hover { background: #4752C4; transform: translateY(-1px); box-shadow: 0 4px 18px rgba(88,101,242,0.4); }
+        .youtube-card {
+            background: linear-gradient(135deg, rgba(255,0,0,0.1) 0%, rgba(255,0,0,0.03) 100%);
+            border: 1px solid rgba(255,0,0,0.25);
+            border-radius: 18px; padding: 24px 28px;
+            display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+        }
+        .youtube-card-left { display: flex; align-items: center; gap: 16px; }
+        .youtube-card-icon { width: 48px; height: 48px; border-radius: 14px; background: rgba(255,0,0,0.15); border: 1px solid rgba(255,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: #ff4444; }
+        .btn-youtube-card { background: var(--youtube); color: white; padding: 10px 22px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; white-space: nowrap; text-decoration: none; }
+        .btn-youtube-card:hover { background: var(--youtube-dark); transform: translateY(-1px); box-shadow: 0 4px 18px var(--youtube-glow); }
+
+        /* MODAL */
+        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.82); backdrop-filter: blur(10px); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal-bg.open { display: flex; }
+        .modal { background: var(--bg3); border: 1px solid var(--border); border-radius: 24px; padding: 40px 36px; max-width: 440px; width: 100%; text-align: center; animation: modalIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative; }
+        @keyframes modalIn { from { opacity:0; transform:scale(0.88) translateY(18px); } to { opacity:1; transform:scale(1) translateY(0); } }
+        .modal-close { position: absolute; top: 14px; right: 14px; background: var(--white-ghost); border: none; color: var(--white-muted); width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .modal-close:hover { background: rgba(255,255,255,0.13); color: var(--white); }
+        .modal-logo { width: 56px; height: 56px; border-radius: 50%; border: 2px solid var(--red); margin-bottom: 18px; }
+        .modal h2 { font-family: 'Bebas Neue', sans-serif; font-size: 1.85rem; letter-spacing: 2px; margin-bottom: 8px; }
+        .modal p { color: var(--white-muted); font-size: 0.87rem; line-height: 1.7; margin-bottom: 24px; }
+        .discord-login-full { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; background: var(--discord); color: white; padding: 15px 20px; border-radius: 13px; font-size: 0.95rem; font-weight: 700; border: none; cursor: pointer; transition: all 0.25s; }
+        .discord-login-full i { font-size: 1.2rem; }
+        .discord-login-full:hover { background: #4752C4; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(88,101,242,0.5); }
+        .buy-price-display { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: 2px; color: var(--red); margin: 16px 0; }
+        .buy-features { text-align: left; margin-bottom: 24px; }
+        .buy-feature { display: flex; align-items: center; gap: 10px; font-size: 0.83rem; color: var(--white-muted); padding: 6px 0; }
+        .buy-feature i { color: #4ade80; font-size: 0.75rem; width: 14px; }
+        .confirm-modal-body { text-align: center; }
+        .confirm-icon { font-size: 2.4rem; margin-bottom: 14px; }
+        .confirm-modal-body h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 2px; margin-bottom: 8px; }
+        .confirm-modal-body p { color: var(--white-muted); font-size: 0.85rem; line-height: 1.65; margin-bottom: 24px; }
+        .confirm-key-display { font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; background: var(--bg); border: 1px solid var(--border-red); border-radius: 9px; padding: 10px 14px; color: var(--red); margin-bottom: 22px; word-break: break-all; }
+        .confirm-actions { display: flex; gap: 10px; }
+        .confirm-actions button { flex: 1; padding: 13px; border-radius: 11px; font-size: 0.88rem; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s; }
+        .confirm-cancel { background: var(--white-ghost); color: var(--white-dim); }
+        .confirm-cancel:hover { background: rgba(255,255,255,0.12); }
+        .confirm-delete { background: #f87171; color: white; }
+        .confirm-delete:hover { background: #ef4444; box-shadow: 0 4px 18px rgba(248,113,113,0.4); }
+        .confirm-reset { background: #fb923c; color: white; }
+        .confirm-reset:hover { background: #f97316; box-shadow: 0 4px 18px rgba(251,146,60,0.4); }
+
+        /* TOAST */
+        .toast-container { position: fixed; bottom: 22px; right: 78px; z-index: 500; display: flex; flex-direction: column; gap: 8px; }
+        .toast { background: var(--bg3); border: 1px solid var(--border); border-left: 3px solid var(--red); color: var(--white); padding: 13px 18px; border-radius: 11px; font-size: 0.83rem; font-weight: 500; display: flex; align-items: center; gap: 10px; animation: toastIn 0.3s ease; max-width: 300px; box-shadow: 0 10px 40px rgba(0,0,0,0.45); }
+        .toast.success { border-left-color: #4ade80; }
+        .toast.info { border-left-color: #818cf8; }
+        .toast.warn { border-left-color: #fb923c; }
+        @keyframes toastIn { from { opacity:0; transform:translateX(100%); } to { opacity:1; transform:translateX(0); } }
+
+        footer { border-top: 1px solid var(--border); padding: 36px 40px; text-align: center; color: var(--white-muted); font-size: 0.8rem; }
+        .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.7rem; letter-spacing: 4px; color: var(--white); margin-bottom: 6px; }
+        .footer-logo span { color: var(--red); }
+        .footer-socials { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 14px; }
+        .footer-social-link {
+            display: flex; align-items: center; gap: 7px;
+            padding: 8px 16px; border-radius: 8px;
+            font-size: 0.8rem; font-weight: 600;
+            text-decoration: none; transition: all 0.2s;
+        }
+        .footer-social-link.discord { color: #818cf8; border: 1px solid rgba(88,101,242,0.2); }
+        .footer-social-link.discord:hover { background: rgba(88,101,242,0.1); }
+        .footer-social-link.youtube { color: #ff4444; border: 1px solid rgba(255,0,0,0.2); }
+        .footer-social-link.youtube:hover { background: rgba(255,0,0,0.1); }
+        .reveal { opacity: 0; transform: translateY(24px); transition: all 0.55s ease; }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--red-dark); border-radius: 3px; }
+
+        @media (max-width: 768px) {
+            nav { padding: 0 18px; }
+            .nav-links { display: none; }
+            .section, .dash-body, .dash-header, .stats-page-wrap { padding-left: 18px; padding-right: 18px; }
+        }
+    </style>
+</head>
+<body>
+
+<video id="bgVideo" autoplay muted loop playsinline>
+    <source src="https://zerohub.fun/Vdeio/Hutao%20Iris%20Out!.mp4" type="video/mp4">
+</video>
+<div class="bg-overlay"></div>
+
+<!-- LOADING SCREEN -->
+<div id="loadingScreen">
+    <img class="loading-logo" src="https://zerohub.fun/Ph/Zerohub.png" onerror="this.style.display='none'">
+    <div class="loading-wordmark">ZERO<span>HUB</span></div>
+    <div class="loading-bar-wrap"><div class="loading-bar" id="loadingBar"></div></div>
+    <div class="loading-label" id="loadingLabel">Loading...</div>
+    <button id="enterBtn" onclick="enterSite()" style="
+        display:none; margin-top:28px;
+        background:rgba(232,25,44,0.12); border:1px solid rgba(232,25,44,0.4);
+        color:white; padding:13px 36px; border-radius:100px;
+        font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:3px;
+        cursor:pointer; transition:all 0.2s;
+        box-shadow: 0 0 20px rgba(232,25,44,0.2);"
+        onmouseover="this.style.background='rgba(232,25,44,0.25)'; this.style.boxShadow='0 0 30px rgba(232,25,44,0.4)';"
+        onmouseout="this.style.background='rgba(232,25,44,0.12)'; this.style.boxShadow='0 0 20px rgba(232,25,44,0.2)';">
+        <i class="fas fa-play" style="margin-right:10px; color:#e8192c;"></i>ENTER ZEROHUB
+    </button>
+</div>
+
+<!-- SOUND PANEL -->
+<div class="sound-panel" id="soundPanel">
+    <button class="sound-icon-btn on" id="soundIconBtn" onclick="toggleMute()" title="Mute / Unmute">
+        <i class="fas fa-volume-high" id="soundIcon"></i>
+    </button>
+    <input class="volume-slider" type="range" id="volumeSlider" min="0" max="100" value="10" oninput="setVolume(this.value)">
+    <div class="volume-pct" id="volumePct">10%</div>
+</div>
+
+<!-- NAVBAR -->
+<nav>
+    <div class="nav-logo" onclick="showPage('home')">
+        <img src="https://zerohub.fun/Ph/Zerohub.png" alt="" onerror="this.style.display='none'">
+        <span class="nav-logo-text">ZERO<span>HUB</span></span>
+    </div>
+    <div class="nav-links">
+        <span class="nav-link active" id="nav-home" onclick="showPage('home')">HOME</span>
+        <span class="nav-link" id="nav-shop" onclick="showPage('shop')">SHOP</span>
+        <span class="nav-link" id="nav-stats" onclick="showPage('stats')">COMMUNITY</span>
+        <span class="nav-link" id="nav-key" style="display:none;" onclick="requireKeyAccess()">KEY SYSTEM</span>
+        <span class="nav-link" id="nav-dashboard" onclick="requireLogin('dashboard')">DASHBOARD</span>
+    </div>
+    <div id="nav-auth-area">
+        <button id="nav-login-btn" onclick="openLoginModal()">
+            <i class="fab fa-discord"></i> Login with Discord
+        </button>
+    </div>
+    <div class="nav-user" id="nav-user-info" style="display:none;" onclick="toggleDropdown(event)">
+        <img class="nav-avatar" id="nav-avatar-img" src="" alt="">
+        <span class="nav-username" id="nav-username-text"></span>
+        <span class="role-tag" id="nav-role-tag" style="display:none;">KEY ACCESS</span>
+        <i class="fas fa-chevron-down" style="font-size:0.65rem; color:var(--white-muted);"></i>
+        <div class="user-dropdown" id="user-dropdown" onclick="event.stopPropagation()">
+            <div class="dropdown-item" onclick="showPage('dashboard');closeDropdown()"><i class="fas fa-gauge-high"></i> Dashboard</div>
+            <div class="dropdown-item" onclick="showPage('stats');closeDropdown()"><i class="fas fa-users"></i> Community</div>
+            <div class="dropdown-item" id="dd-key-item" onclick="showPage('key');closeDropdown()"><i class="fas fa-key"></i> Key System</div>
+            <div class="dropdown-item danger" onclick="logout()"><i class="fas fa-right-from-bracket"></i> Logout</div>
+        </div>
+    </div>
+</nav>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- LOGIN MODAL -->
+<div class="modal-bg" id="loginModal" onclick="handleModalBg(event,'loginModal')">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal('loginModal')"><i class="fas fa-xmark"></i></button>
+        <img class="modal-logo" src="https://zerohub.fun/Ph/Zerohub.png" onerror="this.style.display='none'">
+        <h2>LOGIN TO <span style="color:var(--red);">ZEROHUB</span></h2>
+        <p>Connect your Discord account to manage your scripts and access all features instantly.</p>
+        <button class="discord-login-full" onclick="loginWithDiscord()">
+            <i class="fab fa-discord"></i> Login with Discord
+        </button>
+        <div style="margin-top:16px; font-size:0.78rem; color:var(--white-muted);">
+            <i class="fas fa-shield-halved" style="color:var(--red); margin-right:5px;"></i>
+            Secured with Discord OAuth2 — we never store your password
+        </div>
+    </div>
+</div>
+
+<!-- BUY MODAL -->
+<div class="modal-bg" id="buyModal" onclick="handleModalBg(event,'buyModal')">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal('buyModal')"><i class="fas fa-xmark"></i></button>
+        <div style="font-size:1.5rem; font-weight:700; font-family:'Bebas Neue',sans-serif; letter-spacing:2px; color:var(--red); margin-bottom:14px;" id="buyModalBadge">PREMIUM</div>
+        <h2 id="buyModalTitle">BUY <span style="color:var(--red);">SCRIPT</span></h2>
+        <div class="buy-price-display" id="buyModalPrice">THB 150</div>
+        <div class="buy-features">
+            <div class="buy-feature"><i class="fas fa-check-circle"></i> HWID Protection</div>
+            <div class="buy-feature"><i class="fas fa-check-circle"></i> Anti-Bypass System</div>
+            <div class="buy-feature"><i class="fas fa-check-circle"></i> Free Updates</div>
+            <div class="buy-feature"><i class="fas fa-check-circle"></i> Discord Support 24/7</div>
+        </div>
+        <button class="discord-login-full" onclick="doBuyRedirect()">
+            <i class="fab fa-discord"></i> Purchase via Discord
+        </button>
+    </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-bg" id="confirmModal" onclick="handleModalBg(event,'confirmModal')">
+    <div class="modal" style="max-width:400px;">
+        <button class="modal-close" onclick="closeModal('confirmModal')"><i class="fas fa-xmark"></i></button>
+        <div class="confirm-modal-body">
+            <div class="confirm-icon" id="confirmIcon"></div>
+            <h3 id="confirmTitle">CONFIRM ACTION</h3>
+            <p id="confirmDesc">Are you sure?</p>
+            <div class="confirm-key-display" id="confirmKeyDisplay"></div>
+            <div class="confirm-actions">
+                <button class="confirm-cancel" onclick="closeModal('confirmModal')">Cancel</button>
+                <button id="confirmActionBtn" onclick="runConfirmAction()">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PAGE: HOME -->
+<div class="page active" id="page-home">
+    <div class="hero">
+        <div class="hero-content">
+            <div class="hero-badge"><div class="dot"></div> ONLINE NOW</div>
+            <h1>
+                <span class="line-white">THE BEST</span>
+                <span class="line-red">SCRIPT HUB</span>
+            </h1>
+            <p class="hero-sub">Premium quality scripts for Roblox with Anti-Bypass, HWID Protection and a secure Key System.</p>
+            <div class="hero-actions">
+                <button class="btn-primary" onclick="showPage('shop')"><i class="fas fa-store"></i> ดู Scripts ทั้งหมด</button>
+                <button class="btn-outline" onclick="openLoginModal()"><i class="fab fa-discord"></i> Login with Discord</button>
+            </div>
+            <div class="social-bar" style="margin-top:20px;">
+                <a class="social-btn social-btn-discord" href="https://discord.gg/qVBjdbJAz7" target="_blank">
+                    <i class="fab fa-discord"></i> Discord Server
+                </a>
+                <a class="social-btn social-btn-youtube" href="https://www.youtube.com/@Zero-Hub-O" target="_blank">
+                    <i class="fab fa-youtube"></i> YouTube Channel
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat"><div class="stat-num" data-count="602">0</div><div class="stat-label">Active Users</div></div>
+                <div class="stat"><div class="stat-num" data-count="7">0</div><div class="stat-label">Scripts</div></div>
+                <div class="stat"><div class="stat-num" data-count="99">0</div><div class="stat-label">Uptime %</div></div>
+                <div class="stat"><div class="stat-num" data-count="24">0</div><div class="stat-label">Support /hr</div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PAGE: SHOP -->
+<div class="page" id="page-shop">
+    <div class="section">
+        <div class="section-label">/ Store</div>
+        <h2 class="section-title">ALL <span>SCRIPTS</span></h2>
+        <div class="products-grid" id="productsGrid"></div>
+    </div>
+</div>
+
+<!-- PAGE: COMMUNITY STATS -->
+<div class="page" id="page-stats">
+    <div class="stats-page-wrap">
+        <div class="section-label">/ Community</div>
+        <h2 class="section-title" style="margin-bottom:28px;">ZEROHUB <span>COMMUNITY</span></h2>
+        <div class="live-counter-hero reveal">
+            <div class="live-label"><div class="dot"></div> LIVE COUNT</div>
+            <div class="live-count-main" id="liveLoginCount">0</div>
+            <div class="live-count-label">ผู้ใช้ที่ Login แล้วทั้งหมด</div>
+        </div>
+        <div class="community-stats-grid">
+            <div class="community-stat-card reveal">
+                <div class="csc-icon" style="color:var(--red);"></div>
+                <div class="csc-value" style="color:var(--red);" id="csc-today">—</div>
+                <div class="csc-label">Login วันนี้</div>
+                <div class="csc-sub">ภายใน 24 ชั่วโมงที่ผ่านมา</div>
+            </div>
+            <div class="community-stat-card reveal">
+                <div class="csc-icon" style="color:#4ade80;"></div>
+                <div class="csc-value" style="color:#4ade80;" id="csc-total">—</div>
+                <div class="csc-label">Login ทั้งหมด</div>
+                <div class="csc-sub">ตั้งแต่เริ่มต้น</div>
+            </div>
+            <div class="community-stat-card reveal">
+                <div class="csc-icon" style="color:#818cf8;"></div>
+                <div class="csc-value" style="color:#818cf8;" id="csc-week">—</div>
+                <div class="csc-label">Login 7 วัน</div>
+                <div class="csc-sub">สัปดาห์นี้</div>
+            </div>
+            <div class="community-stat-card reveal">
+                <div class="csc-icon" style="color:#fb923c;"></div>
+                <div class="csc-value" style="color:#fb923c;" id="csc-scripts">7</div>
+                <div class="csc-label">Scripts พร้อมใช้</div>
+                <div class="csc-sub">อัพเดทล่าสุด</div>
+            </div>
+            <div class="community-stat-card reveal">
+                <div class="csc-icon" style="color:#f0abfc;"></div>
+                <div class="csc-value" style="color:#f0abfc;" id="csc-members">556+</div>
+                <div class="csc-label">สมาชิก Discord</div>
+                <div class="csc-sub">และกำลังเพิ่มขึ้น</div>
+            </div>
+        </div>
+        <div class="activity-feed reveal">
+            <div class="activity-feed-header">
+                <h3><i class="fas fa-bolt"></i> RECENT LOGINS</h3>
+                <span class="keys-count-pill" id="activityCountBadge">Live</span>
+            </div>
+            <div id="activityFeedContent">
+                <div class="empty-state">
+                    <i class="fas fa-spinner fa-spin" style="opacity:0.5;"></i>
+                    กำลังโหลดข้อมูล...
+                </div>
+            </div>
+        </div>
+        <div style="margin-top: 24px;" class="reveal">
+            <div class="youtube-card">
+                <div class="youtube-card-left">
+                    <div class="youtube-card-icon"><i class="fab fa-youtube"></i></div>
+                    <div>
+                        <div class="discord-card-name">Zero Hub — YouTube Channel</div>
+                        <div class="discord-card-sub">Showcase</div>
+                    </div>
+                </div>
+                <a class="btn-youtube-card" href="https://www.youtube.com/@Zero-Hub-O" target="_blank">
+                    <i class="fab fa-youtube"></i> Subscribe
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PAGE: KEY SYSTEM -->
+<div class="page" id="page-key">
+    <div class="section">
+        <div class="section-label">/ Admin</div>
+        <h2 class="section-title">KEY <span>MANAGEMENT</span></h2>
+        <div id="key-page-content"></div>
+    </div>
+</div>
+
+<!-- PAGE: DASHBOARD -->
+<div class="page" id="page-dashboard">
+    <div class="dash-header">
+        <div class="dash-welcome">
+            <img class="dash-avatar" id="dash-avatar" src="" alt="">
+            <div>
+                <div class="dash-name" id="dash-name">USERNAME</div>
+                <div class="dash-tag" id="dash-tag">Discord ID: —</div>
+            </div>
+        </div>
+    </div>
+    <div class="dash-body">
+        <div class="dash-cards">
+            <div class="dash-card">
+                <div class="dash-card-icon icon-blue"><i class="fab fa-discord"></i></div>
+                <div class="dash-card-value" id="dash-discord-id" style="font-size:1rem; padding-top:8px;">—</div>
+                <div class="dash-card-label">Discord ID</div>
+            </div>
+            <div class="dash-card">
+                <div class="dash-card-icon icon-green"><i class="fas fa-shield-halved"></i></div>
+                <div class="dash-card-value">ON</div>
+                <div class="dash-card-label">HWID Protection</div>
+            </div>
+            <div class="dash-card">
+                <div class="dash-card-icon icon-orange"><i class="fas fa-crown"></i></div>
+                <div class="dash-card-value" id="dash-role-status" style="font-size:1rem; padding-top:6px;">Checking...</div>
+                <div class="dash-card-label">Key System Access</div>
+            </div>
+            <div class="dash-card">
+                <div class="dash-card-icon icon-red"><i class="fas fa-circle-check"></i></div>
+                <div class="dash-card-value" style="color:#4ade80;">ACTIVE</div>
+                <div class="dash-card-label">Account Status</div>
+            </div>
+            <div class="dash-card">
+                <div class="dash-card-icon icon-youtube"><i class="fab fa-youtube"></i></div>
+                <div class="dash-card-value" style="font-size:0.88rem; padding-top:6px; color:#ff4444;">WATCH NOW</div>
+                <div class="dash-card-label" style="cursor:pointer;" onclick="window.open('https://www.youtube.com/@Zero-Hub-O','_blank')">YouTube Channel ↗</div>
+            </div>
+            <div class="dash-card" id="dash-login-count-card">
+                <div class="dash-card-icon" style="background:rgba(240,171,252,0.1); color:#f0abfc;"><i class="fas fa-users"></i></div>
+                <div class="dash-card-value" id="dash-community-logins" style="color:#f0abfc;">...</div>
+                <div class="dash-card-label">Community Logins</div>
+            </div>
+        </div>
+        <div class="my-key-card" id="my-key-card">
+            <h3><i class="fas fa-id-card"></i> ข้อมูลบัญชีของคุณ</h3>
+            <div class="my-key-info-grid">
+                <div class="my-key-info-item">
+                    <div class="my-key-info-label">Username</div>
+                    <div class="my-key-info-value" id="mykey-username">—</div>
+                </div>
+                <div class="my-key-info-item">
+                    <div class="my-key-info-label">Discord ID</div>
+                    <div class="my-key-info-value" id="mykey-id">—</div>
+                </div>
+                <div class="my-key-info-item">
+                    <div class="my-key-info-label">Role</div>
+                    <div class="my-key-info-value" id="mykey-role">—</div>
+                </div>
+                <div class="my-key-info-item">
+                    <div class="my-key-info-label">Login เวลา</div>
+                    <div class="my-key-info-value good" id="mykey-time">—</div>
+                </div>
+                <div class="my-key-info-item" id="mykey-expiry-item">
+                    <div class="my-key-info-label">Key หมดอายุ</div>
+                    <div class="my-key-info-value" id="mykey-expiry">—</div>
+                </div>
+                <div class="my-key-info-item" id="mykey-daysleft-item">
+                    <div class="my-key-info-label">วันเหลือ</div>
+                    <div class="my-key-info-value" id="mykey-daysleft">—</div>
+                </div>
+                <div class="my-key-info-item" id="mykey-maps-item">
+                    <div class="my-key-info-label">Scripts ที่ใช้ได้</div>
+                    <div class="my-key-info-value" id="mykey-maps">—</div>
+                </div>
+                <div class="my-key-info-item">
+                    <div class="my-key-info-label">Community Rank</div>
+                    <div class="my-key-info-value" id="mykey-rank">—</div>
+                </div>
+            </div>
+        </div>
+        <div class="discord-card">
+            <div class="discord-card-left">
+                <div class="discord-card-icon"><i class="fab fa-discord"></i></div>
+                <div>
+                    <div class="discord-card-name">ZeroHub Community</div>
+                    <div class="discord-card-sub">Join our Discord server for updates, support and keys</div>
+                </div>
+            </div>
+            <button class="btn-discord-inv" onclick="window.open('https://discord.gg/qVBjdbJAz7','_blank')">
+                <i class="fab fa-discord"></i> Join Server
+            </button>
+        </div>
+        <div class="youtube-card">
+            <div class="youtube-card-left">
+                <div class="youtube-card-icon"><i class="fab fa-youtube"></i></div>
+                <div>
+                    <div class="discord-card-name">Zero Hub — YouTube</div>
+                    <div class="discord-card-sub">ดู Scripts showcase, tutorials และ update ใหม่ๆ</div>
+                </div>
+            </div>
+            <a class="btn-youtube-card" href="https://www.youtube.com/@Zero-Hub-O" target="_blank">
+                <i class="fab fa-youtube"></i> YouTube Channel
+            </a>
+        </div>
+        <div>
+            <h3 style="font-family:'Bebas Neue',sans-serif; font-size:1.3rem; letter-spacing:2px; margin-bottom:14px; color:var(--white-muted);">QUICK ACTIONS</h3>
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                <button class="btn-primary" id="dash-key-btn" onclick="requireKeyAccess()" style="display:none;"><i class="fas fa-key"></i> Key Management</button>
+                <button class="btn-outline" onclick="showPage('shop')"><i class="fas fa-store"></i> Shop</button>
+                <button class="btn-outline" onclick="showPage('stats')"><i class="fas fa-users"></i> Community</button>
+                <button class="btn-outline" onclick="window.open('https://discord.gg/qVBjdbJAz7','_blank')"><i class="fab fa-discord"></i> Discord Server</button>
+                <a class="btn-outline" href="https://www.youtube.com/@Zero-Hub-O" target="_blank" style="text-decoration:none;"><i class="fab fa-youtube" style="color:#ff4444;"></i> YouTube</a>
+                <button class="btn-outline" style="color:#f87171; border-color:rgba(248,113,113,0.2);" onclick="logout()"><i class="fas fa-right-from-bracket"></i> Logout</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="footer-logo">ZERO<span>HUB</span></div>
+    <p>2025 ZeroHub — The Best Roblox Script Hub</p>
+    <div class="footer-socials">
+        <a href="https://discord.gg/qVBjdbJAz7" target="_blank" class="footer-social-link discord">
+            <i class="fab fa-discord"></i> Discord Server
+        </a>
+        <a href="https://www.youtube.com/@Zero-Hub-O" target="_blank" class="footer-social-link youtube">
+            <i class="fab fa-youtube"></i> YouTube Channel
+        </a>
+    </div>
+</footer>
+
+<script>
+// ════════════════════════════
+// CONFIG
+// ════════════════════════════
+const CONFIG = {
+    DISCORD_CLIENT_ID: '1458516591871524976',
+    REDIRECT_URI: window.location.origin + window.location.pathname,
+    API_BASE: 'https://zerohub.fun/api/verify.php',
+    STATS_API: 'https://zerohub.fun/api/stats.php',
+    REQUIRED_GUILD_ID: '1443900330558492724',
+    REQUIRED_ROLE_ID:  '1443900658989138082',
+    ADMIN_TOKEN:  'ZEROHUBFORPROTEXTSOSIGMATHISCANBEREAL',
+    DISCORD_INV: 'https://discord.gg/qVBjdbJAz7',
+    YOUTUBE_URL: 'https://www.youtube.com/@Zero-Hub-O',
+};
+
+// ════════════════════════════
+// STATE
+// ════════════════════════════
+let currentUser       = null;
+let currentBuyProduct = null;
+let allParsedKeys     = [];
+let userHasKeyRole    = false;
+let roleCheckDone     = false;
+let confirmCallback   = null;
+let currentUserKeyInfo = null; // เก็บข้อมูล Key ของ user ปัจจุบัน
+
+// ════════════════════════════
+// HELPER FUNCTIONS
+// ════════════════════════════
+function calculateDaysLeft(expiry) {
+    if (!expiry || expiry === 'unlimited') return null;
+    const today = new Date();
+    const expDate = new Date(expiry);
+    const diffTime = expDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+}
+
+function formatMaps(mapsStr) {
+    if (!mapsStr || mapsStr === 'all') return 'ทุก Scripts';
+    const maps = mapsStr.split('|').map(m => m.trim());
+    const mapNames = {
+        'Deadline': 'Deadline',
+        'Op1': 'Operation One',
+        'AF': 'Auto Farm',
+        'Blackout': 'Blackout',
+        'BlackHawk': 'BlackHawk',
+        'SCP': 'SCP Retrobreach'
+    };
+    return maps.map(m => mapNames[m] || m).join(', ');
+}
+
+function getScriptsList(mapsStr) {
+    if (!mapsStr || mapsStr === 'all') return ['ZeroHub Blackout', 'ZeroHub Deadline', 'ZeroHub AF', 'ZeroHub Operation One', 'ZeroHub BlackHawk', 'ZeroHub SCP Retrobreach'];
+    const maps = mapsStr.split('|').map(m => m.trim().toLowerCase());
+    const scripts = [];
+    if (maps.includes('blackout')) scripts.push('ZeroHub Blackout');
+    if (maps.includes('deadline')) scripts.push('ZeroHub Deadline');
+    if (maps.includes('af')) scripts.push('ZeroHub AF');
+    if (maps.includes('op1')) scripts.push('ZeroHub Operation One');
+    if (maps.includes('blackhawk')) scripts.push('ZeroHub BlackHawk');
+    if (maps.includes('scp')) scripts.push('ZeroHub SCP Retrobreach');
+    return scripts;
+}
+
+// ════════════════════════════
+// LOGIN TRACKING (localStorage)
+// ════════════════════════════
+const LOGIN_LOG_KEY = 'zh_login_log';
+
+function getLoginLog() {
+    try { return JSON.parse(localStorage.getItem(LOGIN_LOG_KEY) || '[]'); } catch { return []; }
+}
+function saveLoginLog(log) {
+    try { localStorage.setItem(LOGIN_LOG_KEY, JSON.stringify(log)); } catch {}
+}
+function recordLogin(user) {
+    const log = getLoginLog();
+    const alreadyToday = log.find(e => e.id === user.id && new Date(e.ts).toDateString() === new Date().toDateString());
+    if (!alreadyToday) {
+        log.unshift({ id: user.id, username: user.username, avatar: user.avatar, ts: new Date().toISOString() });
+        if (log.length > 500) log.length = 500;
+        saveLoginLog(log);
+    }
+}
+function getLoginStats() {
+    const log = getLoginLog();
+    const now = new Date();
+    const todayStr = now.toDateString();
+    const weekAgo = new Date(now - 7 * 86400000);
+    const uniqueIds = new Set(log.map(e => e.id));
+    const todayEntries = log.filter(e => new Date(e.ts).toDateString() === todayStr);
+    const todayUnique = new Set(todayEntries.map(e => e.id));
+    const weekEntries = log.filter(e => new Date(e.ts) >= weekAgo);
+    const weekUnique = new Set(weekEntries.map(e => e.id));
+    return { total: uniqueIds.size, today: todayUnique.size, week: weekUnique.size, entries: log.slice(0, 20) };
+}
+
+// ════════════════════════════
+// COMMUNITY STATS PAGE
+// ════════════════════════════
+function renderCommunityStats() {
+    const stats = getLoginStats();
+    animateCount('liveLoginCount', stats.total, 1200);
+    document.getElementById('csc-today').textContent = stats.today;
+    document.getElementById('csc-total').textContent = stats.total;
+    document.getElementById('csc-week').textContent  = stats.week;
+    const dashEl = document.getElementById('dash-community-logins');
+    if (dashEl) dashEl.textContent = stats.total;
+    renderActivityFeed(stats.entries);
+    setTimeout(() => {
+        document.querySelectorAll('#page-stats .reveal').forEach((el, i) =>
+            setTimeout(() => el.classList.add('visible'), i * 80));
+    }, 50);
+}
+
+function renderActivityFeed(entries) {
+    const container = document.getElementById('activityFeedContent');
+    if (!container) return;
+    if (!entries || entries.length === 0) {
+        container.innerHTML = `<div class="empty-state"><i class="fas fa-users"></i>ยังไม่มีข้อมูล Login</div>`;
+        return;
+    }
+    container.innerHTML = entries.map(e => {
+        const av = e.avatar
+            ? `<img src="https://cdn.discordapp.com/avatars/${e.id}/${e.avatar}.png?size=64" alt="" onerror="this.style.display='none'">`
+            : `<span>${(e.username || '?')[0].toUpperCase()}</span>`;
+        const timeAgo = getTimeAgo(new Date(e.ts));
+        return `
+        <div class="activity-item">
+            <div class="activity-avatar">${av}</div>
+            <div class="activity-info">
+                <div class="activity-name">${escHtml(e.username || 'Unknown')}</div>
+                <div class="activity-action"><i class="fas fa-sign-in-alt" style="color:var(--red); margin-right:5px; font-size:0.7rem;"></i>เข้าสู่ระบบ ZeroHub</div>
+            </div>
+            <div class="activity-time">${escHtml(timeAgo)}</div>
+        </div>`;
+    }).join('');
+    document.getElementById('activityCountBadge').textContent = entries.length + ' logins';
+}
+
+function getTimeAgo(date) {
+    const diff = (Date.now() - date) / 1000;
+    if (diff < 60)     return 'เมื่อสักครู่';
+    if (diff < 3600)   return `${Math.floor(diff/60)} นาทีที่แล้ว`;
+    if (diff < 86400)  return `${Math.floor(diff/3600)} ชั่วโมงที่แล้ว`;
+    return `${Math.floor(diff/86400)} วันที่แล้ว`;
+}
+
+function animateCount(id, target, duration) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const step = (timestamp) => {
+        const elapsed = timestamp - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.floor(eased * target).toLocaleString();
+        if (progress < 1) requestAnimationFrame(step);
+        else el.textContent = target.toLocaleString();
+    };
+    let startTime;
+    requestAnimationFrame((ts) => { startTime = ts; step(ts); });
+}
+
+// ════════════════════════════
+// ROLE CHECK
+// ════════════════════════════
+async function checkUserRole(accessToken) {
+    if (!accessToken) { roleCheckDone = true; return false; }
+    try {
+        const res = await fetch(
+            `https://discord.com/api/users/@me/guilds/${CONFIG.REQUIRED_GUILD_ID}/member`,
+            { headers: { Authorization: `Bearer ${accessToken}` } }
+        );
+        if (!res.ok) { roleCheckDone = true; return false; }
+        const member = await res.json();
+        const hasRole = (member.roles || []).includes(CONFIG.REQUIRED_ROLE_ID);
+        roleCheckDone = true;
+        return hasRole;
+    } catch(e) { roleCheckDone = true; return false; }
+}
+
+function applyRoleUI(hasRole) {
+    userHasKeyRole = hasRole;
+    const navKey = document.getElementById('nav-key');
+    if (hasRole) { navKey.classList.add('role-granted'); }
+    else { navKey.classList.remove('role-granted'); navKey.style.display = 'none'; }
+    document.getElementById('dd-key-item').style.display = hasRole ? 'flex' : 'none';
+    document.getElementById('nav-role-tag').style.display = hasRole ? '' : 'none';
+    const roleStatus = document.getElementById('dash-role-status');
+    if (roleStatus) {
+        roleStatus.textContent = hasRole ? 'GRANTED' : 'NO ACCESS';
+        roleStatus.style.color = hasRole ? '#4ade80' : '#f87171';
+        roleStatus.style.fontSize = '1.3rem';
+    }
+    const dashKeyBtn = document.getElementById('dash-key-btn');
+    if (dashKeyBtn) dashKeyBtn.style.display = hasRole ? 'flex' : 'none';
+    const mykeyRole = document.getElementById('mykey-role');
+    const mykeyRank = document.getElementById('mykey-rank');
+    if (mykeyRole) {
+        mykeyRole.innerHTML = hasRole
+            ? `<span class="rank-premium">KEY ACCESS</span>`
+            : `<span class="rank-member">Member</span>`;
+    }
+    if (mykeyRank) {
+        mykeyRank.innerHTML = hasRole
+            ? `<span class="rank-premium">⭐ Premium</span>`
+            : `<span class="rank-member">🔵 Member</span>`;
+    }
+}
+
+// ════════════════════════════
+// LOAD USER KEY INFO FROM API
+// ════════════════════════════
+async function loadUserKeyInfo() {
+    if (!currentUser) return;
+    
+    try {
+        const token = CONFIG.ADMIN_TOKEN;
+        const url = `${CONFIG.API_BASE}?action=list&token=${encodeURIComponent(token)}&_=${Date.now()}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        if (data.status === 'success' && data.keys) {
+            const userKey = data.keys.find(k => k.discord === currentUser.id);
+            if (userKey) {
+                currentUserKeyInfo = userKey;
+                updateDashboardKeyInfo(userKey);
+            } else {
+                currentUserKeyInfo = null;
+                updateDashboardKeyInfo(null);
+            }
+        }
+    } catch(e) {
+        console.error('Failed to load user key info:', e);
+    }
+}
+
+function updateDashboardKeyInfo(keyInfo) {
+    const expiryItem = document.getElementById('mykey-expiry-item');
+    const daysleftItem = document.getElementById('mykey-daysleft-item');
+    const mapsItem = document.getElementById('mykey-maps-item');
+    
+    if (!keyInfo) {
+        if (expiryItem) expiryItem.style.display = 'none';
+        if (daysleftItem) daysleftItem.style.display = 'none';
+        if (mapsItem) mapsItem.style.display = 'none';
+        return;
+    }
+    
+    if (expiryItem) expiryItem.style.display = 'block';
+    if (daysleftItem) daysleftItem.style.display = 'block';
+    if (mapsItem) mapsItem.style.display = 'block';
+    
+    // แสดงวันหมดอายุ
+    const expiryEl = document.getElementById('mykey-expiry');
+    const daysleftEl = document.getElementById('mykey-daysleft');
+    const mapsEl = document.getElementById('mykey-maps');
+    
+    if (expiryEl) {
+        if (keyInfo.expiry === 'unlimited') {
+            expiryEl.innerHTML = '<span class="good">ไม่มีวันหมดอายุ</span>';
+            expiryEl.className = 'my-key-info-value good';
+        } else {
+            expiryEl.textContent = keyInfo.expiry;
+            expiryEl.className = 'my-key-info-value';
+        }
+    }
+    
+    if (daysleftEl) {
+        const daysLeft = calculateDaysLeft(keyInfo.expiry);
+        if (keyInfo.expiry === 'unlimited') {
+            daysleftEl.innerHTML = '<span class="good">∞ ตลอดไป</span>';
+            daysleftEl.className = 'my-key-info-value good';
+        } else if (daysLeft !== null) {
+            if (daysLeft < 0) {
+                daysleftEl.innerHTML = '<span class="expired">หมดอายุแล้ว</span>';
+                daysleftEl.className = 'my-key-info-value expired';
+            } else if (daysLeft <= 3) {
+                daysleftEl.innerHTML = `<span class="warn">${daysLeft} วัน (ใกล้หมดอายุ!)</span>`;
+                daysleftEl.className = 'my-key-info-value warn';
+            } else {
+                daysleftEl.innerHTML = `<span class="good">${daysLeft} วัน</span>`;
+                daysleftEl.className = 'my-key-info-value good';
+            }
+        }
+    }
+    
+    if (mapsEl) {
+        const scriptsList = getScriptsList(keyInfo.maps);
+        const mapsHtml = scriptsList.map(s => `<span class="map-tag">${s}</span>`).join('');
+        mapsEl.innerHTML = `<div class="maps-list">${mapsHtml}</div>`;
+        mapsEl.className = 'my-key-info-value';
+    }
+}
+
+// ════════════════════════════
+// KEY ADMIN PAGE
+// ════════════════════════════
+async function renderKeyPage() {
+    const container = document.getElementById('key-page-content');
+
+    if (!currentUser) {
+        container.innerHTML = `
+            <div class="access-denied-box">
+                <i class="fas fa-lock access-denied-icon"></i>
+                <div class="access-denied-title">LOGIN REQUIRED</div>
+                <p class="access-denied-sub">กรุณา Login ด้วย Discord ก่อนเพื่อเข้าถึง Key System</p>
+                <button class="discord-login-full" style="max-width:320px; margin:0 auto;" onclick="openLoginModal()">
+                    <i class="fab fa-discord"></i> Login with Discord
+                </button>
+            </div>`;
+        return;
+    }
+
+    if (!userHasKeyRole) {
+        container.innerHTML = `
+            <div class="access-denied-box">
+                <i class="fas fa-shield-halved access-denied-icon"></i>
+                <div class="access-denied-title">ACCESS DENIED</div>
+                <div class="role-badge-display"><i class="fas fa-crown"></i> REQUIRED: KEY ACCESS ROLE</div>
+                <p class="access-denied-sub">
+                    คุณไม่มีสิทธิ์เข้าถึง Key System<br>
+                    ต้องมี Role <strong style="color:#f87171;">Key Access</strong> ใน Discord Server
+                </p>
+                <button class="discord-login-full" style="max-width:320px; margin:0 auto;" onclick="window.open('${CONFIG.DISCORD_INV}','_blank')">
+                    <i class="fab fa-discord"></i> ติดต่อ Admin ใน Discord
+                </button>
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = `
+    <div class="key-admin-wrap">
+        <div class="token-bar reveal">
+            <label><i class="fas fa-lock" style="margin-right:6px;"></i>Admin Token</label>
+            <input class="token-input" type="password" id="adminToken" placeholder="Enter admin token..." value="${CONFIG.ADMIN_TOKEN}">
+            <button class="btn-sm btn-sm-red" onclick="loadAllKeys()"><i class="fas fa-rotate-right"></i> Load Keys</button>
+        </div>
+        <div class="admin-panels reveal">
+            <div class="admin-box">
+                <div class="admin-box-header"><i class="fas fa-plus-circle"></i><h3>ADD KEY</h3></div>
+                <div class="admin-box-body">
+                    <div class="form-field"><label>License Key</label><input class="form-input" id="addKey" placeholder="ZERO-XXXX-XXXX-XXXX" maxlength="30" oninput="this.value=this.value.toUpperCase()"></div>
+                    <div class="form-field"><label>Discord ID</label><input class="form-input" id="addDiscord" placeholder="123456789012345678" maxlength="20"></div>
+                    <div class="form-field"><label>HWID (optional)</label><input class="form-input" id="addHwid" placeholder="Leave empty to skip"></div>
+                    <div class="form-field"><label>Expiry (YYYY-MM-DD or unlimited)</label><input class="form-input" id="addExpiry" placeholder="2026-12-31 or unlimited" value="unlimited"></div>
+                    <div class="form-field"><label>Maps (use | to separate, or "all")</label><input class="form-input" id="addMaps" placeholder="Deadline|Op1|AF or all" value="all"></div>
+                    <div class="form-field"><label>Status</label><select class="form-select" id="addStatus"><option value="active">ACTIVE</option><option value="inactive">INACTIVE</option></select></div>
+                    <button class="btn-sm btn-sm-red" style="width:100%; justify-content:center; padding:12px;" onclick="addKey()"><i class="fas fa-plus"></i> Add Key</button>
+                </div>
+            </div>
+            <div class="admin-box">
+                <div class="admin-box-header"><i class="fas fa-rotate-right"></i><h3>RESET HWID</h3></div>
+                <div class="admin-box-body">
+                    <p style="font-size:0.82rem; color:var(--white-muted); margin-bottom:18px; line-height:1.7;">รีเซ็ต HWID เท่านั้น — <strong style="color:#4ade80;">จำนวนครั้งการรันยังคงเดิม</strong></p>
+                    <div class="form-field"><label>License Key</label><input class="form-input" id="resetKey" placeholder="ZERO-XXXX-XXXX-XXXX" maxlength="30" oninput="this.value=this.value.toUpperCase()"></div>
+                    <div class="form-field"><label>Discord ID</label><input class="form-input" id="resetDiscord" placeholder="Discord ID of key owner" maxlength="20"></div>
+                    <div style="background:rgba(251,146,60,0.06); border:1px solid rgba(251,146,60,0.18); border-radius:10px; padding:12px 14px; margin-bottom:16px; font-size:0.78rem; color:#fb923c; line-height:1.6;">
+                        <i class="fas fa-triangle-exclamation" style="margin-right:6px;"></i>
+                        การรีเซ็ต HWID จะลบ HWID เดิมออก<br><span style="color:#4ade80;">Run Count จะไม่ถูกลบ</span>
+                    </div>
+                    <button class="btn-sm btn-sm-warn" style="width:100%; justify-content:center; padding:12px;" onclick="confirmResetHwid()"><i class="fas fa-rotate-right"></i> Reset HWID</button>
+                </div>
+            </div>
+            <div class="admin-box">
+                <div class="admin-box-header"><i class="fas fa-calendar-alt"></i><h3>SET EXPIRY</h3></div>
+                <div class="admin-box-body">
+                    <div class="form-field"><label>License Key</label><input class="form-input" id="expiryKey" placeholder="ZERO-XXXX-XXXX-XXXX" maxlength="30" oninput="this.value=this.value.toUpperCase()"></div>
+                    <div class="form-field"><label>Expiry Date</label><input class="form-input" id="expiryDate" placeholder="2026-12-31 or unlimited" value="unlimited"></div>
+                    <button class="btn-sm btn-sm-red" style="width:100%; justify-content:center; padding:12px;" onclick="setKeyExpiry()"><i class="fas fa-save"></i> Set Expiry</button>
+                </div>
+            </div>
+            <div class="admin-box">
+                <div class="admin-box-header"><i class="fas fa-map"></i><h3>SET MAPS</h3></div>
+                <div class="admin-box-body">
+                    <div class="form-field"><label>License Key</label><input class="form-input" id="mapsKey" placeholder="ZERO-XXXX-XXXX-XXXX" maxlength="30" oninput="this.value=this.value.toUpperCase()"></div>
+                    <div class="form-field"><label>Maps (use | to separate, or "all")</label><input class="form-input" id="mapsValue" placeholder="Deadline|Op1|AF or all" value="all"></div>
+                    <button class="btn-sm btn-sm-red" style="width:100%; justify-content:center; padding:12px;" onclick="setKeyMaps()"><i class="fas fa-save"></i> Set Maps</button>
+                </div>
+            </div>
+        </div>
+        <div class="keys-table-wrap reveal">
+            <div class="keys-table-header">
+                <h3><i class="fas fa-list"></i> ALL KEYS <span class="keys-count-pill" id="keysCountBadge">—</span></h3>
+                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                    <input class="search-bar" id="keySearch" placeholder="Search key / Discord ID..." oninput="filterKeys(this.value)">
+                    <button class="btn-sm btn-sm-outline" onclick="loadAllKeys()"><i class="fas fa-rotate-right"></i> Refresh</button>
+                </div>
+            </div>
+            <div id="keysTableContainer">
+                <div class="empty-state"><i class="fas fa-key"></i>กด Load Keys เพื่อดึงข้อมูล</div>
+            </div>
+        </div>
+    </div>`;
+
+    setTimeout(() => {
+        document.querySelectorAll('#page-key .reveal').forEach((el, i) =>
+            setTimeout(() => el.classList.add('visible'), i * 100));
+    }, 50);
+}
+
+async function addKey() {
+    const token   = document.getElementById('adminToken').value.trim();
+    const key     = document.getElementById('addKey').value.trim().toUpperCase();
+    const discord = document.getElementById('addDiscord').value.trim();
+    const hwid    = document.getElementById('addHwid').value.trim();
+    const expiry  = document.getElementById('addExpiry').value.trim();
+    const maps    = document.getElementById('addMaps').value.trim();
+    
+    if (!token)   { showToast('กรอก Admin Token ก่อน', 'warn'); return; }
+    if (!key)     { showToast('กรอก License Key', 'warn'); return; }
+    if (!discord) { showToast('กรอก Discord ID', 'warn'); return; }
+    
+    showToast('กำลังเพิ่ม Key...', 'info');
+    try {
+        let url = `${CONFIG.API_BASE}?action=add_key&token=${encodeURIComponent(token)}&key=${encodeURIComponent(key)}&discord=${encodeURIComponent(discord)}&expiry=${encodeURIComponent(expiry)}&maps=${encodeURIComponent(maps)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.status === 'success') {
+            showToast(`เพิ่ม Key สำเร็จ: ${key}`, 'success');
+            document.getElementById('addKey').value = '';
+            document.getElementById('addDiscord').value = '';
+            document.getElementById('addHwid').value = '';
+            await loadAllKeys();
+        } else { showToast(`${data.msg || 'Error'}`, 'warn'); }
+    } catch(e) { showToast('Connection failed', 'warn'); }
+}
+
+async function setKeyExpiry() {
+    const token   = document.getElementById('adminToken').value.trim();
+    const key     = document.getElementById('expiryKey').value.trim().toUpperCase();
+    const expiry  = document.getElementById('expiryDate').value.trim();
+    
+    if (!token)   { showToast('กรอก Admin Token ก่อน', 'warn'); return; }
+    if (!key)     { showToast('กรอก License Key', 'warn'); return; }
+    if (!expiry)  { showToast('กรอกวันที่หมดอายุ', 'warn'); return; }
+    
+    showToast('กำลังอัปเดตวันหมดอายุ...', 'info');
+    try {
+        const url = `${CONFIG.API_BASE}?action=set_expiry&token=${encodeURIComponent(token)}&key=${encodeURIComponent(key)}&expiry=${encodeURIComponent(expiry)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.status === 'success') {
+            showToast(`อัปเดตวันหมดอายุสำเร็จ: ${key}`, 'success');
+            document.getElementById('expiryKey').value = '';
+            document.getElementById('expiryDate').value = 'unlimited';
+            await loadAllKeys();
+            if (currentUser) loadUserKeyInfo();
+        } else { showToast(`${data.msg || 'Error'}`, 'warn'); }
+    } catch(e) { showToast('Connection failed', 'warn'); }
+}
+
+async function setKeyMaps() {
+    const token   = document.getElementById('adminToken').value.trim();
+    const key     = document.getElementById('mapsKey').value.trim().toUpperCase();
+    const maps    = document.getElementById('mapsValue').value.trim();
+    
+    if (!token)   { showToast('กรอก Admin Token ก่อน', 'warn'); return; }
+    if (!key)     { showToast('กรอก License Key', 'warn'); return; }
+    if (!maps)    { showToast('กรอก Maps ที่อนุญาต', 'warn'); return; }
+    
+    showToast('กำลังอัปเดต Maps...', 'info');
+    try {
+        const url = `${CONFIG.API_BASE}?action=set_maps&token=${encodeURIComponent(token)}&key=${encodeURIComponent(key)}&maps=${encodeURIComponent(maps)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.status === 'success') {
+            showToast(`อัปเดต Maps สำเร็จ: ${key}`, 'success');
+            document.getElementById('mapsKey').value = '';
+            document.getElementById('mapsValue').value = 'all';
+            await loadAllKeys();
+            if (currentUser) loadUserKeyInfo();
+        } else { showToast(`${data.msg || 'Error'}`, 'warn'); }
+    } catch(e) { showToast('Connection failed', 'warn'); }
+}
+
+async function deleteKey(key, discord) {
+    const token = document.getElementById('adminToken').value.trim();
+    if (!token) { showToast('กรอก Admin Token ก่อน', 'warn'); closeModal('confirmModal'); return; }
+    showToast('กำลังลบ Key...', 'info');
+    closeModal('confirmModal');
+    try {
+        const url = `${CONFIG.API_BASE}?action=delete_key&token=${encodeURIComponent(token)}&key=${encodeURIComponent(key)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.status === 'success') { 
+            showToast(`ลบ Key สำเร็จ: ${key}`, 'success'); 
+            await loadAllKeys();
+            if (currentUser) loadUserKeyInfo();
+        }
+        else { showToast(`${data.msg || 'Error'}`, 'warn'); }
+    } catch(e) { showToast('Connection failed', 'warn'); }
+}
+
+async function resetHwid(key, discord) {
+    const token = document.getElementById('adminToken').value.trim();
+    if (!token) { showToast('กรอก Admin Token ก่อน', 'warn'); closeModal('confirmModal'); return; }
+    showToast('กำลัง Reset HWID...', 'info');
+    closeModal('confirmModal');
+    try {
+        const url = `${CONFIG.API_BASE}?action=reset&token=${encodeURIComponent(token)}&key=${encodeURIComponent(key)}&discord=${encodeURIComponent(discord)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.status === 'success') {
+            showToast(`Reset HWID สำเร็จ: ${key}`, 'success');
+            document.getElementById('resetKey').value = '';
+            document.getElementById('resetDiscord').value = '';
+            await loadAllKeys();
+        } else { showToast(`${data.msg || 'Error'}`, 'warn'); }
+    } catch(e) { showToast('Connection failed', 'warn'); }
+}
+
+function confirmDeleteKey(key, discord) {
+    document.getElementById('confirmIcon').textContent = '🗑️';
+    document.getElementById('confirmTitle').textContent = 'DELETE KEY';
+    document.getElementById('confirmDesc').textContent = 'ต้องการลบ Key นี้ใช่ไหม? ไม่สามารถกู้คืนได้';
+    document.getElementById('confirmKeyDisplay').textContent = key;
+    const btn = document.getElementById('confirmActionBtn');
+    btn.className = 'confirm-delete';
+    btn.textContent = 'Delete';
+    confirmCallback = () => deleteKey(key, discord);
+    openModal('confirmModal');
+}
+
+function confirmResetHwid() {
+    const key     = document.getElementById('resetKey')?.value?.trim();
+    const discord = document.getElementById('resetDiscord')?.value?.trim();
+    if (!key)     { showToast('กรอก Key ก่อน', 'warn'); return; }
+    if (!discord) { showToast('กรอก Discord ID ก่อน', 'warn'); return; }
+    document.getElementById('confirmIcon').textContent = '🔄';
+    document.getElementById('confirmTitle').textContent = 'RESET HWID';
+    document.getElementById('confirmDesc').textContent = 'ต้องการ Reset HWID ของ Key นี้ใช่ไหม?';
+    document.getElementById('confirmKeyDisplay').textContent = key;
+    const btn = document.getElementById('confirmActionBtn');
+    btn.className = 'confirm-reset';
+    btn.textContent = 'Reset HWID';
+    confirmCallback = () => resetHwid(key, discord);
+    openModal('confirmModal');
+}
+
+function runConfirmAction() {
+    if (typeof confirmCallback === 'function') confirmCallback();
+    confirmCallback = null;
+}
+
+function quickResetHwid(key, discord) {
+    const rk = document.getElementById('resetKey');
+    const rd = document.getElementById('resetDiscord');
+    if (rk) rk.value = key;
+    if (rd) rd.value = discord;
+    confirmResetHwid();
+}
+
+async function loadAllKeys() {
+    const container = document.getElementById('keysTableContainer');
+    const badge     = document.getElementById('keysCountBadge');
+    if (!container || !badge) return;
+    container.innerHTML = `<div class="empty-state"><div class="spinner-sm" style="margin:0 auto 10px;"></div>กำลังโหลด...</div>`;
+    badge.textContent = '...';
+    try {
+        const token = document.getElementById('adminToken').value.trim() || CONFIG.ADMIN_TOKEN;
+        const url = `${CONFIG.API_BASE}?action=list&token=${encodeURIComponent(token)}&_=${Date.now()}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.status !== 'success') throw new Error(data.msg || 'Failed to load keys');
+        allParsedKeys = data.keys;
+        badge.textContent = `${allParsedKeys.length} keys`;
+        renderKeysTable(allParsedKeys);
+        
+        if (currentUser) loadUserKeyInfo();
+    } catch(e) {
+        badge.textContent = 'error';
+        container.innerHTML = `<div class="empty-state"><i class="fas fa-triangle-exclamation" style="color:#fb923c;"></i>โหลดไม่สำเร็จ — ${e.message}</div>`;
+        showToast('Failed to load keys', 'warn');
+    }
+}
+
+function renderKeysTable(keys) {
+    const container = document.getElementById('keysTableContainer');
+    if (!container) return;
+    if (keys.length === 0) {
+        container.innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i>ไม่มี Keys ในระบบ</div>`;
+        return;
+    }
+    container.innerHTML = `
+    <div style="overflow-x:auto;">
+    <table>
+        <thead>
+            <tr><th>#</th><th>LICENSE KEY</th><th>DISCORD ID</th><th>HWID</th><th>STATUS</th><th style="text-align:center;">RUNS</th><th>EXPIRY</th><th>MAPS</th><th>ACTIONS</th></tr>
+        </thead>
+        <tbody>
+            ${keys.map((k, i) => {
+                const isExpired = k.expiry !== 'unlimited' && new Date() > new Date(k.expiry);
+                const statusClass = isExpired ? 'status-expired' : (k.hwid ? 'status-active' : 'status-inactive');
+                const statusText = isExpired ? 'EXPIRED' : (k.hwid ? 'ACTIVE' : 'UNUSED');
+                const expiryDisplay = k.expiry === 'unlimited' ? '<span class="expiry-badge unlimited">∞ Unlimited</span>' : `<span class="expiry-badge ${isExpired ? 'expired' : ''}">${k.expiry}</span>`;
+                const mapsDisplay = k.maps === 'all' ? '<span class="map-tag">All Scripts</span>' : k.maps.split('|').map(m => `<span class="map-tag">${m}</span>`).join('');
+                return `
+                <tr>
+                    <td style="color:var(--white-muted); font-size:0.75rem;">${i + 1}</td>
+                    <td><div class="key-cell"><span>${escHtml(k.key)}</span><button class="btn-sm btn-sm-outline" style="padding:4px 9px; font-size:0.7rem;" onclick="copyText('${escHtml(k.key)}')"><i class="fas fa-copy"></i></button></div></td>
+                    <td style="font-family:'JetBrains Mono',monospace; font-size:0.78rem; color:var(--white-muted);">${k.discord ? `<span style="color:#818cf8;">${escHtml(k.discord)}</span>` : '<span style="opacity:0.35;">—</span>'}</td>
+                    <td style="font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--white-muted); max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${k.hwid ? escHtml(k.hwid) : '<span style="opacity:0.35;">—</span>'}</td>
+                    <td><span class="key-status-badge ${statusClass}">${statusText}</span></td>
+                    <td style="text-align:center;"><span class="run-count-badge ${k.run_count === 0 ? 'zero' : ''}">${k.run_count}</span></td>
+                    <td>${expiryDisplay}</td>
+                    <td><div class="maps-badge">${mapsDisplay}</div></td>
+                    <td><div class="action-btns"><button class="btn-sm btn-sm-danger" onclick="confirmDeleteKey('${escHtml(k.key)}','${escHtml(k.discord)}')"><i class="fas fa-trash"></i> Delete</button><button class="btn-sm btn-sm-warn" onclick="quickResetHwid('${escHtml(k.key)}','${escHtml(k.discord)}')"><i class="fas fa-rotate-right"></i> Reset</button></div></td>
+                </tr>`;
+            }).join('')}
+        </tbody>
+    </table>
+    </div>`;
+}
+
+function filterKeys(query) {
+    const q = query.toLowerCase();
+    renderKeysTable(allParsedKeys.filter(k =>
+        k.key.toLowerCase().includes(q) || k.discord.toLowerCase().includes(q) || k.hwid.toLowerCase().includes(q)
+    ));
+}
+
+function escHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// ════════════════════════════
+// SOUND
+// ════════════════════════════
+const video       = document.getElementById('bgVideo');
+const soundIcon   = document.getElementById('soundIcon');
+const soundIconBtn= document.getElementById('soundIconBtn');
+const volumeSlider= document.getElementById('volumeSlider');
+const volumePct   = document.getElementById('volumePct');
+let isMuted = false;
+const DEFAULT_VOLUME = 0.1;
+
+function updateSliderTrack(val) {
+    const pct = val + '%';
+    volumeSlider.style.background =
+        `linear-gradient(to right, var(--red) 0%, var(--red) ${pct}, rgba(255,255,255,0.1) ${pct}, rgba(255,255,255,0.1) 100%)`;
+}
+
+function setVolume(val) {
+    const v = parseInt(val);
+    video.volume = v / 100;
+    volumePct.textContent = v + '%';
+    updateSliderTrack(v);
+    if (v === 0) {
+        isMuted = true; soundIcon.className = 'fas fa-volume-xmark'; soundIconBtn.classList.remove('on');
+    } else {
+        isMuted = false;
+        soundIcon.className = v < 50 ? 'fas fa-volume-low' : 'fas fa-volume-high';
+        soundIconBtn.classList.add('on'); video.muted = false;
+    }
+}
+
+function toggleMute() {
+    isMuted = !isMuted; video.muted = isMuted;
+    if (isMuted) { soundIcon.className = 'fas fa-volume-xmark'; soundIconBtn.classList.remove('on'); showToast('Sound off', 'info'); }
+    else {
+        const v = parseInt(volumeSlider.value);
+        soundIcon.className = v < 50 ? 'fas fa-volume-low' : 'fas fa-volume-high';
+        soundIconBtn.classList.add('on'); showToast('Sound on', 'success');
+    }
+}
+
+// ════════════════════════════
+// LOADING
+// ════════════════════════════
+(function initLoading() {
+    const bar      = document.getElementById('loadingBar');
+    const label    = document.getElementById('loadingLabel');
+    const enterBtn = document.getElementById('enterBtn');
+    let progress   = 0;
+    let videoReady = false;
+    video.muted = true; video.playbackRate = 1.0;
+    video.play().catch(() => {});
+    const ticker = setInterval(() => {
+        if (progress < (videoReady ? 92 : 78)) {
+            progress += Math.random() * 10;
+            bar.style.width = Math.min(progress, videoReady ? 92 : 78) + '%';
+        }
+    }, 180);
+    function onVideoReady() {
+        videoReady = true; clearInterval(ticker);
+        bar.style.width = '100%'; label.textContent = 'Ready';
+        enterBtn.style.display = 'inline-flex'; enterBtn.style.alignItems = 'center';
+    }
+    if (video.readyState >= 3) { setTimeout(onVideoReady, 400); }
+    else {
+        video.addEventListener('canplaythrough', () => setTimeout(onVideoReady, 400), { once: true });
+        setTimeout(() => { if (!videoReady) onVideoReady(); }, 8000);
+    }
+})();
+
+function enterSite() {
+    const screen = document.getElementById('loadingScreen');
+    video.volume = DEFAULT_VOLUME; video.muted = false; video.playbackRate = 1.0;
+    video.play().catch(() => { video.muted = true; });
+    updateSliderTrack(10);
+    screen.classList.add('fade-out');
+    setTimeout(() => { if (screen.parentNode) screen.remove(); }, 600);
+}
+
+// ════════════════════════════
+// PRODUCTS
+// ════════════════════════════
+const products = [
+    { id:1, name:'ZeroHub Blackout',        desc:'ESP, Aimbot, Fly, Anti-Cheat bypass ครบจบสำหรับ Blackout',         price:299, free:false, tags:['PREMIUM','UPDATED'] },
+    { id:2, name:'ZeroHub Deadline',        desc:'ESP ละเอียด, Speed Hack และ Auto Farm สำหรับ Deadline',             price:299, free:false, tags:['PREMIUM'] },
+    { id:3, name:'ZeroHub AF',              desc:'Automatic farming with loop system and anti-idle support',           price:199, free:false, tags:['POPULAR'] },
+    { id:4, name:'ZeroHub Operation One',   desc:'Hitbox expander, speed, no-clip สำหรับ Op1',                        price:199, free:false, tags:['UPDATED'] },
+    { id:5, name:'ZeroHub BlackHawk',       desc:'Aimbot, ESP, No Recoil',                                            price:199, free:false, tags:['UPDATED'] },
+    { id:6, name:'ZeroHub Free',            desc:'Free loader for trial use — works with general scripts',             price:0,   free:true,  tags:['FREE'] },
+    { id:7, name:'ZeroHub SCP Retrobreach', desc:'Silent aim, shadows kill, rage fly and more...',                    price:299, free:false, tags:['PREMIUM','BEST DEAL'] },
+    { id:8, name:'Full Pack Bundle',        desc:'All scripts bundled at a special price with Lifetime License!',     price:799, free:false, tags:['BUNDLE','BEST DEAL'] },
+];
+const tagClass = { PREMIUM:'tag-red', FREE:'tag-green', POPULAR:'tag-red', UPDATED:'tag-white', BUNDLE:'tag-red', 'BEST DEAL':'tag-white' };
+
+function renderProducts() {
+    const grid = document.getElementById('productsGrid');
+    grid.innerHTML = products.map(p => {
+        const tags = p.tags.map(t => `<span class="tag ${tagClass[t]||'tag-white'}">${t}</span>`).join('');
+        const priceHtml = p.free
+            ? `<div class="card-price"><span class="price-free">FREE</span></div>`
+            : `<div class="card-price">THB ${p.price}<small>/mo</small></div>`;
+        const btnHtml = p.free
+            ? `<button class="btn-buy btn-buy-free" onclick="openBuyModal(${p.id})"><i class="fas fa-download"></i> Get Free</button>`
+            : `<button class="btn-buy" onclick="openBuyModal(${p.id})"><i class="fas fa-cart-shopping"></i> Buy Now</button>`;
+        return `
+        <div class="product-card reveal">
+            <div class="card-banner"><div class="card-banner-inner">${p.name.split(' ')[1] || 'ZERO'}</div></div>
+            <div class="card-body">
+                <div class="card-tags">${tags}</div>
+                <div class="card-name">${p.name}</div>
+                <div class="card-desc">${p.desc}</div>
+                <div class="card-footer">${priceHtml}${btnHtml}</div>
+            </div>
+        </div>`;
+    }).join('');
+    setTimeout(() => document.querySelectorAll('#productsGrid .reveal').forEach((el, i) =>
+        setTimeout(() => el.classList.add('visible'), i * 70)), 50);
+}
+
+function openBuyModal(id) {
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+    currentBuyProduct = p;
+    document.getElementById('buyModalBadge').textContent = p.tags[0] || 'SCRIPT';
+    document.getElementById('buyModalTitle').innerHTML = `BUY <span style="color:var(--red);">${p.name.toUpperCase()}</span>`;
+    document.getElementById('buyModalPrice').textContent = p.free ? 'FREE' : `THB ${p.price} / เดือน`;
+    openModal('buyModal');
+}
+function doBuyRedirect() { window.open(CONFIG.DISCORD_INV, '_blank'); closeModal('buyModal'); }
+
+// ════════════════════════════
+// DISCORD OAUTH2
+// ════════════════════════════
+function loginWithDiscord() {
+    sessionStorage.setItem('zh_return', 'dashboard');
+    const params = new URLSearchParams({
+        client_id:     CONFIG.DISCORD_CLIENT_ID,
+        redirect_uri:  CONFIG.REDIRECT_URI,
+        response_type: 'token',
+        scope:         'identify guilds.members.read'
+    });
+    window.location.href = `https://discord.com/api/oauth2/authorize?${params}`;
+}
+
+async function handleDiscordCallback() {
+    const hash = window.location.hash.slice(1);
+    if (!hash) return false;
+    const p     = new URLSearchParams(hash);
+    const token = p.get('access_token');
+    const type  = p.get('token_type') || 'Bearer';
+    if (!token) return false;
+    history.replaceState(null, null, window.location.pathname);
+    showToast('กำลังโหลดข้อมูล...', 'info');
+    try {
+        const r = await fetch('https://discord.com/api/users/@me', { headers: { Authorization: `${type} ${token}` } });
+        const u = await r.json();
+        if (!u.id) throw new Error('bad user');
+        sessionStorage.setItem('zh_user', JSON.stringify(u));
+        sessionStorage.setItem('zh_token', token);
+        recordLogin(u);
+        applyUser(u);
+        showToast('กำลังตรวจสอบ Role...', 'info');
+        const hasRole = await checkUserRole(token);
+        applyRoleUI(hasRole);
+        if (hasRole) showToast('มี Key Access Role!', 'success');
+        else showToast('ไม่มี Key Access Role', 'warn');
+        await loadUserKeyInfo();
+        const ret = sessionStorage.getItem('zh_return') || 'home';
+        sessionStorage.removeItem('zh_return');
+        showPage(ret);
+        showToast(`ยินดีต้อนรับ, ${u.username}!`, 'success');
+        return true;
+    } catch(e) {
+        showToast('Login ล้มเหลว กรุณาลองใหม่', 'warn');
+        return false;
+    }
+}
+
+function checkSavedLogin() {
+    const s     = sessionStorage.getItem('zh_user');
+    const token = sessionStorage.getItem('zh_token');
+    if (!s) return false;
+    try {
+        const u = JSON.parse(s);
+        applyUser(u);
+        if (token) { checkUserRole(token).then(hasRole => { applyRoleUI(hasRole); loadUserKeyInfo(); }); }
+        else applyRoleUI(false);
+        return true;
+    } catch {
+        sessionStorage.removeItem('zh_user');
+        sessionStorage.removeItem('zh_token');
+        return false;
+    }
+}
+
+function applyUser(u) {
+    currentUser = u;
+    const av = u.avatar
+        ? `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=128`
+        : `https://cdn.discordapp.com/embed/avatars/${Number(u.discriminator||0)%5}.png`;
+    document.getElementById('nav-auth-area').style.display = 'none';
+    document.getElementById('nav-user-info').style.display = 'flex';
+    document.getElementById('nav-avatar-img').src = av;
+    document.getElementById('nav-username-text').textContent = u.username;
+    document.getElementById('dash-avatar').src = av;
+    document.getElementById('dash-name').textContent = u.username;
+    document.getElementById('dash-tag').textContent = `Discord ID: ${u.id}`;
+    document.getElementById('dash-discord-id').textContent = u.id;
+    const myU = document.getElementById('mykey-username');
+    const myI = document.getElementById('mykey-id');
+    const myT = document.getElementById('mykey-time');
+    if (myU) myU.textContent = u.username;
+    if (myI) myI.textContent = u.id;
+    if (myT) myT.textContent = new Date().toLocaleTimeString('th-TH');
+    const stats = getLoginStats();
+    const dashEl = document.getElementById('dash-community-logins');
+    if (dashEl) dashEl.textContent = stats.total;
+}
+
+function logout() {
+    currentUser = null; userHasKeyRole = false; roleCheckDone = false; currentUserKeyInfo = null;
+    sessionStorage.removeItem('zh_user');
+    sessionStorage.removeItem('zh_token');
+    document.getElementById('nav-auth-area').style.display = '';
+    document.getElementById('nav-user-info').style.display = 'none';
+    document.getElementById('nav-key').classList.remove('role-granted');
+    document.getElementById('nav-key').style.display = 'none';
+    document.getElementById('dd-key-item').style.display = 'none';
+    document.getElementById('nav-role-tag').style.display = 'none';
+    closeDropdown();
+    showPage('home');
+    showToast('Logged out สำเร็จ', 'info');
+}
+
+// ════════════════════════════
+// NAVIGATION
+// ════════════════════════════
+function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    const pg = document.getElementById(`page-${name}`);
+    if (!pg) return;
+    pg.classList.add('active');
+    const navEl = document.getElementById(`nav-${name}`);
+    if (navEl) navEl.classList.add('active');
+    window.scrollTo(0, 0);
+    if (name === 'shop')      renderProducts();
+    if (name === 'key')       renderKeyPage();
+    if (name === 'stats')     renderCommunityStats();
+    if (name === 'dashboard') {
+        const stats = getLoginStats();
+        const dashEl = document.getElementById('dash-community-logins');
+        if (dashEl) dashEl.textContent = stats.total;
+        loadUserKeyInfo();
+    }
+}
+
+function requireLogin(page) {
+    if (!currentUser) { openLoginModal(); showToast('กรุณา Login ก่อน', 'warn'); }
+    else showPage(page);
+}
+
+function requireKeyAccess() {
+    if (!currentUser) { openLoginModal(); showToast('กรุณา Login ก่อน', 'warn'); return; }
+    showPage('key');
+}
+
+// ════════════════════════════
+// MODALS & DROPDOWN
+// ════════════════════════════
+function openLoginModal() { openModal('loginModal'); }
+function openModal(id)    { document.getElementById(id).classList.add('open'); }
+function closeModal(id)   { document.getElementById(id).classList.remove('open'); }
+function handleModalBg(e, id) { if (e.target === e.currentTarget) closeModal(id); }
+function toggleDropdown(e) { e.stopPropagation(); document.getElementById('user-dropdown').classList.toggle('open'); }
+function closeDropdown()   { document.getElementById('user-dropdown').classList.remove('open'); }
+document.addEventListener('click', () => closeDropdown());
+
+// ════════════════════════════
+// UTILS
+// ════════════════════════════
+function copyText(t) { navigator.clipboard.writeText(t).then(() => showToast('Copied!', 'success')); }
+
+function showToast(msg, type = '') {
+    const c = document.getElementById('toastContainer');
+    const el = document.createElement('div');
+    const icons = { success:'circle-check', info:'circle-info', warn:'triangle-exclamation' };
+    el.className = `toast ${type}`;
+    el.innerHTML = `<i class="fas fa-${icons[type]||'circle-info'}"></i> ${msg}`;
+    c.appendChild(el);
+    setTimeout(() => {
+        el.style.transition = 'opacity 0.3s'; el.style.opacity = '0';
+        setTimeout(() => el.remove(), 300);
+    }, 3000);
+}
+
+// Counter animation
+document.querySelectorAll('[data-count]').forEach(el => {
+    const target = parseInt(el.dataset.count);
+    const step   = target / (1600 / 16);
+    let cur = 0;
+    const t = setInterval(() => {
+        cur += step;
+        if (cur >= target) { el.textContent = target.toLocaleString(); clearInterval(t); }
+        else el.textContent = Math.floor(cur).toLocaleString();
+    }, 16);
+});
+
+// ════════════════════════════
+// INIT
+// ════════════════════════════
+(async function init() {
+    if (window.location.hash.includes('access_token')) {
+        await handleDiscordCallback();
+    } else {
+        checkSavedLogin();
+    }
+})();
+</script>
+</body>
+</html>
